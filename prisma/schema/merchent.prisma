@@ -15,4 +15,5 @@ model Merchent {
     user User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
     @@map("merchent")
+    percels Percel[]
 }

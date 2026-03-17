@@ -1,0 +1,31 @@
+model Rider {
+    id String @id @default(uuid())
+    userId String @unique
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    isBanned Boolean @default(false)
+    joinDate DateTime @default(now())
+    nid String @unique
+    dob String
+    
+    bloodGrouph String?
+    contact String
+    address String
+    deliveryArea String
+    experience String @default("No Experience")
+    vehicleType VehicleType @default(BIKE)
+
+    isAssigned Boolean @default(false)
+    assignedAt DateTime? 
+
+    vehicleNumber String
+
+   
+
+    @@map("rider")
+    @@index([userId])
+    @@index([isAssigned])
+    @@index([isBanned])
+
+    percels Percel[]
+}

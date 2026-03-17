@@ -22,6 +22,9 @@ model User {
   @@unique([email])
   @@map("user")
   merchents Merchent?
+  riders Rider?
+  reviews Reviews[]
+  notifications Notification[]
 }
 
 model Session {

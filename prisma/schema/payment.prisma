@@ -1,0 +1,25 @@
+model Payment {
+    id String @id @default(uuid())
+    amount Float
+    status PaymentStatus @default(PENDING)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    percelId String @unique
+    percel Percel @relation(fields: [percelId], references: [id])
+
+
+    paymentMethod PaymentMethode @default(CASH)
+    transactionId String?
+    isPaid Boolean @default(false)
+
+    @@index([isPaid])
+    @@index([paymentMethod])
+    @@index([percelId])
+    @@index([status])
+    @@index([transactionId])
+
+
+
+    @@map("payments")
+}

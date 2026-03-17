@@ -1,0 +1,35 @@
+model Percel {
+    id String @id @default(cuid())
+    name String @db.VarChar(255)
+    notes String?
+    weight Float
+    price Int
+    status PercelStatus @default(REQUESTED)
+    pickupLocation String @db.VarChar(255)
+    deliveryLocation String @db.VarChar(255)
+    isSelfPickup Boolean @default(false)
+
+    percelType PercelType @default(PAKAGE)
+
+    reciverName String @db.Text
+    reciverContact String @db.Text
+    reciverAddress String @db.Text
+    
+    pickupTime DateTime
+    deliveryTime DateTime
+
+    merchentId String
+    merchent Merchent @relation(fields: [merchentId], references: [id])
+
+    riderId String?
+
+    @@map("percels")
+
+    @@index([riderId])
+    @@index([percelType])
+    @@index([merchentId])
+    @@index([status])
+    riders Rider[]
+    reviews Reviews[]
+    payments Payment?
+}

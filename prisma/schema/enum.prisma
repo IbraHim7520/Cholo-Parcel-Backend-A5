@@ -18,6 +18,12 @@ enum UserRole {
     RIDER
 }
 
+enum VehicleType {
+    BIKE
+    CYCLE
+    VAN
+}
+
 enum NotificationStatus {
     READ
     UNREAD
