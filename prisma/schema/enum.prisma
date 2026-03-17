@@ -1,0 +1,60 @@
+enum ComphanyType {
+    ONLINE
+    PHYSICAL
+    BOTH
+}
+
+
+enum UserStatus {
+    ACTIVE
+    DEACTIVE
+    DELETED
+}
+
+enum UserRole {
+    USER
+    MERCHENT
+    ADMIN
+    RIDER
+}
+
+enum NotificationStatus {
+    READ
+    UNREAD
+}
+
+enum PaymentStatus {
+    PAID
+    UNPAID
+    PENDING
+    CANCELLED
+}
+
+enum PaymentMethode {
+    CASH
+    MOBILE_BANKING
+    BANK_TRANSFER
+    CARD
+}
+
+enum PercelStatus {
+    REQUESTED
+    CONFIRMED
+    PICKED
+    SHIPPED
+    ARRIVED_WARHOUSE
+    IN_TRANSIT
+    DRIVER_ASSIGNED
+    DELIVERED
+    CANCELLED
+    RETURNED
+}
+
+enum PercelType {
+    DOCUMENT
+    GLASS
+    PAKAGE
+    FOOD
+    OTHERS
+}
+

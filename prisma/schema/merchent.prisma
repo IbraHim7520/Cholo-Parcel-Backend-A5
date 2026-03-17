@@ -1,0 +1,18 @@
+model Merchent {
+    id String @id @default(uuid())
+    ComphanyName String
+    ComphanyAddress String
+    ComphanyPhone String    @unique
+    ComphanyEmail String   @unique
+    ComphanyLogo String?
+    ComphanyWebsite String?  @unique
+    ComphanyDescription String
+    ComphanyType ComphanyType
+    CreatedAt DateTime @default(now())
+    UpdatedAt DateTime @updatedAt
+
+    ownerId String @unique
+    user User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+    @@map("merchent")
+}
