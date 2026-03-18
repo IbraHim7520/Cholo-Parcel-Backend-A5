@@ -2,6 +2,9 @@ import express, { Application, Request, Response } from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { env } from './config/env';
+import { notFoundRoute } from './global/notFound';
+import { toNodeHandler } from 'better-auth/node';
+import { auth } from './lib/auth';
 
 const app:Application = express();
 
@@ -22,5 +25,13 @@ app.get('/', (req:Request , res:Response)=>{
         message: `Server is running on PORT: ${env.PORT}`
     })
 })
+
+
+app.use("api/auth", toNodeHandler(auth));
+
+
+
+
+app.use(notFoundRoute)
 
 export default app;
