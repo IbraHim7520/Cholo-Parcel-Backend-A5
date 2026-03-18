@@ -5,3 +5,6 @@ node_modules
 node_modules
 generated
 /generated/prisma
+
+.vercel
+vercel.json
