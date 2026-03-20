@@ -10,6 +10,7 @@ model Merchent {
     ComphanyType ComphanyType
     CreatedAt DateTime @default(now())
     UpdatedAt DateTime @updatedAt
+    status MarchentStatus @default(PENDING)
 
     ownerId String @unique
     user User @relation(fields: [ownerId], references: [id], onDelete: Cascade)

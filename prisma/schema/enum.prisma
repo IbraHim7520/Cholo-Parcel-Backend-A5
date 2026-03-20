@@ -70,3 +70,9 @@ enum RiderRequestStatus {
     APPROVED
     REJECTED
 }
+
+enum MarchentStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
