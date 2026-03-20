@@ -64,3 +64,9 @@ enum PercelType {
     OTHERS
 }
 
+
+enum RiderRequestStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}

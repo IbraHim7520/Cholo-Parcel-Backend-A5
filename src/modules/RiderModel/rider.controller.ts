@@ -1,0 +1,69 @@
+import { NextFunction, Request, Response } from "express"
+import { riderService } from "./rider.service";
+import status from "http-status";
+
+const handleCreateRider =async (req:Request , res:Response , next:NextFunction)=>{
+    const riderData = req.body;
+    try {
+        const riderCreateResult = await riderService.createRider(riderData);
+        if(!riderCreateResult){
+            res.status(status.BAD_REQUEST).send({
+                success:false,
+                message: "Failed to create request!!",
+            })
+        }
+
+        res.status(status.OK).send({
+            success:true,
+            message: "Request Submitted successfully."
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+const handleChangeRiderStatustoApprove = async (req:Request , res:Response , next:NextFunction)=>{
+    const riderId = req.params.riderId as string
+    try {
+        const result = await riderService.changeRiderStatustoApprove(riderId);
+        if(!result){
+            res.status(status.BAD_REQUEST).send({
+                success:false,
+                message: "Failed to change status!!",
+            })
+        }
+
+        res.status(status.OK).send({
+            success:true,
+            message: "Status changed to Approved successfully."
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const handleChangeRiderStatustoReject = async (req:Request , res:Response , next:NextFunction)=>{
+    const riderId = req.params.riderId as string
+    try {
+        const result = await riderService.changeRiderStatustoReject(riderId);
+        if(!result){
+            res.status(status.BAD_REQUEST).send({
+                success:false,
+                message: "Failed to change status!!",
+            })
+        }
+
+        res.status(status.OK).send({
+            success:true,
+            message: "Status changed to Rejected successfully."
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+export const riderController = {
+    handleCreateRider,
+    handleChangeRiderStatustoApprove,
+    handleChangeRiderStatustoReject
+}

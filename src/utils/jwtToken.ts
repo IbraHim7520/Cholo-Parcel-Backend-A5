@@ -8,7 +8,8 @@ export const createJWTToken = (payload:JwtPayload, {expiresIn}:SignOptions)=>{
 }
 
 
-export const tokenVerify = (token:string , secret:string)=>{
+export const tokenVerify = (token:string)=>{
+    const secret:string = env.JWT_SECRET;
     try {
         const decoded = jwt.verify(token , secret) as JwtPayload
         return {

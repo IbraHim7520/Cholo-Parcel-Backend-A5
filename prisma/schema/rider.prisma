@@ -7,6 +7,7 @@ model Rider {
     joinDate DateTime @default(now())
     nid String @unique
     dob String
+    status RiderRequestStatus @default(PENDING)
     
     bloodGrouph String?
     contact String
