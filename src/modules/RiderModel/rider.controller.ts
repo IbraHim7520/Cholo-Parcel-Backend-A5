@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from "express"
 import { riderService } from "./rider.service";
 import status from "http-status";
+import { env } from "../../config/env";
+import { createJWTToken } from "../../utils/jwtToken";
+import { SendCookies } from "../../utils/Cookie";
 
 const handleCreateRider =async (req:Request , res:Response , next:NextFunction)=>{
     const riderData = req.body;
@@ -12,6 +15,27 @@ const handleCreateRider =async (req:Request , res:Response , next:NextFunction)=
                 message: "Failed to create request!!",
             })
         }
+
+        const accessToken = createJWTToken(riderCreateResult.signUpRider.user, { expiresIn: "24h" });
+        const refreshToken = createJWTToken(riderCreateResult.signUpRider.user,  { expiresIn: "7d" });
+        SendCookies(res , "accessToken", accessToken , {
+            maxAge: 24 * 60 * 60 * 1000,
+            httpOnly:true,
+            secure: env.NODE_ENV === "production",
+            sameSite:"strict"
+        })
+        SendCookies(res , "refreshToken", refreshToken , {
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly:true,
+            secure: env.NODE_ENV === "production",
+            sameSite:"strict"
+        })
+        SendCookies(res , "better-auth_session.token", riderCreateResult.signUpRider.token as string , {
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly:true,
+            secure: env.NODE_ENV === "production",
+            sameSite:"strict"
+        })
 
         res.status(status.OK).send({
             success:true,
