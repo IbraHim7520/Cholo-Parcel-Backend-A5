@@ -9,6 +9,7 @@ import userRoute from './modules/UserModel/user.route';
 import GlobalError from './middlewere/handleGlobalErrors';
 import dotenv from 'dotenv';
 import riderRoute from './modules/RiderModel/rider.route';
+import marchentRouter from './modules/MarchentModel/marchent.route';
 dotenv.config()
 const app: Application = express();
 
@@ -36,7 +37,7 @@ app.use("/api/auth", toNodeHandler(auth));
 
 app.use("/api/v1/users", userRoute),
 app.use("/api/v1/riders", riderRoute),
-// app.use("/api/v1/marchents")
+app.use("/api/v1/marchents", marchentRouter);
 // app.use("/api/v1/admins")
 
 
