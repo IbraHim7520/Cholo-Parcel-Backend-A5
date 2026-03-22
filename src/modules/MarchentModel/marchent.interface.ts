@@ -11,3 +11,16 @@ export interface ICreateMarchent {
     ComphanyType: ComphanyType;
     ownerId:string
 }
+
+
+
+export interface IUpdateMarchentData{
+    ComphanyName?: string;
+    ComphanyAddress?: string;
+    ComphanyPhone?: string;
+    ComphanyEmail?: string;
+    ComphanyLogo?: string;
+    ComphanyWebsite?: string;
+    ComphanyDescription?: string;
+    ComphanyType?: ComphanyType;
+}

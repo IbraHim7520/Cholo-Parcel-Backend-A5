@@ -1,6 +1,6 @@
 import { MarchentStatus, UserRole, UserStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
-import { ICreateMarchent } from "./marchent.interface"
+import { ICreateMarchent, IUpdateMarchentData } from "./marchent.interface"
 
 const createMarchent = async(marchentPayload:ICreateMarchent)=>{
     const userId = marchentPayload.ownerId;
@@ -30,29 +30,120 @@ const approveMarchent = async(marchentId:string)=>{
     const isMarchentExists = await prisma.merchent.findUnique({where: {id: marchentId}});
     if(!isMarchentExists) throw new Error("Marchent not found")
     if(isMarchentExists.status ===  MarchentStatus.APPROVED) throw new Error("Marchent is already approved");
-    const marchentResult = await prisma.merchent.update({
-        where: {id: marchentId},
-        data: {
-            status: MarchentStatus.APPROVED
-        }
+    const marchentApprove = await prisma.$transaction(async(tx)=>{
+        const approve = await tx.merchent.update({
+            where: { id: marchentId },
+            data: {
+                status: MarchentStatus.APPROVED
+            }
+        })
+        const userRoleUpdate = await tx.user.update({
+            where: { id: isMarchentExists.ownerId },
+            data: {
+                role: UserRole.MERCHENT
+            }
+        })
+        return {approve, userRoleUpdate};
     })
-    return marchentResult;
+    return marchentApprove;
 }
 
 const rejectMarchent = async(marchentId:string)=>{
     const isMarchentExists = await prisma.merchent.findUnique({where: {id: marchentId}});
     if(!isMarchentExists) throw new Error("Marchent not found")
     if(isMarchentExists.status ===  MarchentStatus.REJECTED) throw new Error("Marchent is already rejected");
-    const marchentResult = await prisma.merchent.update({
-        where: {id: marchentId},
-        data: {
-            status: MarchentStatus.REJECTED
+    const marchentReject = await prisma.$transaction(async(tx)=>{
+        const reject = await tx.merchent.update({
+            where: { id: marchentId },
+            data: {
+                status: MarchentStatus.REJECTED
+            }
+        })
+        const userRoleUpdate = await tx.user.update({
+            where: { id: isMarchentExists.ownerId },
+            data: {
+                role: UserRole.USER
+            }
+        })
+        return {reject, userRoleUpdate};
+    })
+    return marchentReject;
+}
+const getMarchentProfile = async(userId:string)=>{
+    const profileData = await prisma.merchent.findUnique({
+        where:{
+            ownerId: userId
+        },
+        include:{
+            user:true,
+            percels:true,
         }
     })
-    return marchentResult;
+    return profileData;
+
 }
+
+const deleteMarchent = async(marchentId:string)=>{
+    const isMarchentExists = await prisma.merchent.findUnique({where: {id: marchentId}});
+    if(!isMarchentExists) throw new Error("Marchent not found")
+    const marchentDelete = await prisma.$transaction(async(tx)=>{
+        const deleteMarchent = await tx.merchent.delete({
+            where: { id: marchentId },
+        })
+        const userRoleUpdate = await tx.user.update({
+            where: { id: isMarchentExists.ownerId },
+            data: {
+                role: UserRole.USER
+            }
+        })
+        return {deleteMarchent, userRoleUpdate};
+    })
+    return marchentDelete;
+}
+
+const updateMarchent = async(marchentId:string , updateData:IUpdateMarchentData)=>{
+    const isMarchentExists = await prisma.merchent.findUnique({where: {id: marchentId}});
+    if(!isMarchentExists) throw new Error("Marchent not found")
+    const marchentUpdate = await prisma.merchent.update({
+        where: { id: marchentId },
+        data: {
+            ComphanyName: updateData.ComphanyName,
+            ComphanyAddress: updateData.ComphanyAddress,
+            ComphanyPhone: updateData.ComphanyPhone,
+            ComphanyEmail: updateData.ComphanyEmail,
+            ComphanyDescription: updateData.ComphanyDescription,
+            ComphanyLogo: updateData.ComphanyLogo,
+            ComphanyWebsite: updateData.ComphanyWebsite,
+            ComphanyType: updateData.ComphanyType
+        }
+    })
+    return marchentUpdate;
+}
+
+const getMyParcels  = async(userId:string)=>{
+    const marchentData = await prisma.merchent.findUnique({
+        where:{
+            ownerId: userId
+        }
+    })
+    if(!marchentData) throw new Error("Marchent not found")
+    const marchentId = marchentData?.id as string;
+    const parcels = await prisma.percel.findMany({
+        where:{
+            merchentId: marchentId
+        }
+    });
+
+    return parcels
+    
+}
+
 export const marchentService = {
     createMarchent,
     approveMarchent,
-    rejectMarchent
+    rejectMarchent,
+    getMarchentProfile,
+    deleteMarchent,
+    updateMarchent,
+    getMyParcels
 }
