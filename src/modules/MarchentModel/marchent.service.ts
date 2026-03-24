@@ -138,6 +138,25 @@ const getMyParcels  = async(userId:string)=>{
     
 }
 
+const getMarchentDetails = async(marchentId:string)=>{
+    const marchentDetails = await prisma.merchent.findUnique({
+        where:{
+            id: marchentId
+        },
+        include:{
+            user:{
+                select:{
+                    id:true,
+                    name:true,
+                    email:true,
+                    image:true
+                }
+            }
+        }
+    })
+    return marchentDetails;
+}
+
 export const marchentService = {
     createMarchent,
     approveMarchent,
@@ -145,5 +164,6 @@ export const marchentService = {
     getMarchentProfile,
     deleteMarchent,
     updateMarchent,
+    getMarchentDetails,
     getMyParcels
 }

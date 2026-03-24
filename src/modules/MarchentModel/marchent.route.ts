@@ -17,6 +17,8 @@ marchentRouter.get('/marchent-profile', marchentController.handleGetMarchentProf
 marchentRouter.delete("/delete-marchent/:id", marchentController.handleDeleteMarchent);
 marchentRouter.patch('/update-marchent/:id', ValidateReqBody(UpdateMarchentZodSchema), marchentController.handleUpdateMarchentProfile)
 
+marchentRouter.get("/details-marchent/:marchentId", marchentController.handleGetMarchentDetails)
+
 marchentRouter.get("/my-parcels", marchentController.handleGetMyParcels)
 //public
 export default marchentRouter;

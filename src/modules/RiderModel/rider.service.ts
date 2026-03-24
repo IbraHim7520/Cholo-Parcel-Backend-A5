@@ -1,7 +1,7 @@
-import { RiderRequestStatus, UserStatus } from "../../../generated/prisma/enums";
+import { PercelStatus, RiderRequestStatus, UserStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { userServices } from "../UserModel/user.service";
-import { ICreateRider } from "./rider.interface"
+import { ICreateRider, IUpdateParcelStatus, IUpdateRiderProfile } from "./rider.interface"
 // const result = await prisma.$transaction(async (tx) => {
 //     const isExistUser = await tx.user.findUnique({
 //         where: {
@@ -146,8 +146,82 @@ const changeRiderStatustoReject = async(riderId:string)=>{
     })
 }
 
+
+const updateRider = async (userId:string , riderData:IUpdateRiderProfile)=>{
+    return await prisma.rider.update({
+        where: {
+            userId: userId
+        },
+        data: {
+            dob: riderData.dob,
+            nid: riderData.nid,
+            bloodGrouph: riderData.bloodGrouph,
+            contact: riderData.contact,
+            address: riderData.address,
+            deliveryArea: riderData.deliveryArea,
+            experience: riderData.experience,
+            vehicleType: riderData.vehicleType,
+            vehicleNumber: riderData.vehicleNumber
+        }
+    })
+}
+
+const getRiderProfile = async (userId:string)=>{
+    return await prisma.rider.findUnique({
+        where: {
+            userId: userId
+        },
+        include: {
+            user: true
+        }
+    })
+}
+
+
+const getMyParcels = async (userId:string)=>{
+    const riderData = await prisma.rider.findUnique({where:{userId: userId}});
+    if(!riderData){
+        throw new Error("Rider not found");
+    }
+    const riderId = riderData.id;
+    return await prisma.percel.findMany({
+        where:{
+            riderId:riderId,
+            status: PercelStatus.REQUESTED
+        },
+        include:{
+            merchent:{
+                select:{
+                    ComphanyName:true,
+                    id:true,
+                    ComphanyEmail:true,
+                    ComphanyAddress:true,
+                    ComphanyPhone:true
+                }
+            }
+        }
+    })
+}
+
+const updatePercelStatus  = async(percelId:string , status:IUpdateParcelStatus)=>{
+    return await prisma.percel.update({
+        where: {
+            id: percelId
+        },
+        data: {
+            status: status.status as PercelStatus
+        }
+    })
+}
+
+
+
 export const riderService = {
-     createRider,
+    createRider,
     changeRiderStatustoApprove,
-    changeRiderStatustoReject
+    changeRiderStatustoReject,
+    updateRider,
+    getRiderProfile,
+    updatePercelStatus,
+    getMyParcels
 }

@@ -98,8 +98,53 @@ const handleUserLogin = async(req:Request , res:Response , next:NextFunction)=>{
     }
 }
 
+const handleUserLogout = async(req:Request , res:Response , next:NextFunction)=>{
+    try {
+        const logoutResult = await userServices.userLogout(req);
+        if(!logoutResult.success){
+            res.status(status.BAD_REQUEST).send({
+                success: false,
+                message: "Failed to logout!",
+                data: logoutResult
+            })
+        }
+        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken");
+        res.clearCookie("better-auth_session.token");
+        res.status(status.OK).send({
+            success: true,
+            message: "User Logout successfully.",
+            data: logoutResult
+        })
+    } catch (error) {
+        next(error)
+    }
+}
 
+
+const handleChangePassword = async(req:Request , res:Response , next:NextFunction)=>{
+    try {
+        const changePasswordData = req.body;
+        const changePasswordResult = await userServices.userChangePassword(changePasswordData);
+        if(!changePasswordResult.user){
+            res.status(status.BAD_REQUEST).send({
+                success: false,
+                message: "Failed to change password!",
+                data: changePasswordResult
+            })
+        }
+        res.status(status.OK).send({
+            success: true,
+            message: "Password changed successfully.",
+            data: changePasswordResult
+        })
+    } catch (error) {
+        next(error)
+    }
+}
 export const userController = {
     handleUserSignUp,
-    handleUserLogin
+    handleUserLogin,
+    handleUserLogout,
+    handleChangePassword
 }

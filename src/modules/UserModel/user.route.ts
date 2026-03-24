@@ -1,7 +1,7 @@
 import { Router } from "express"
 import { userController } from "./user.controller";
 import ValidateReqBody from "../../middlewere/ValidateZodSchema";
-import { userLoginSchema, userSignupSchema } from "./user.zodschema";
+import { userChangePasswordZodSchema, userLoginSchema, userSignupSchema } from "./user.zodschema";
 
 const userRoute = Router();
 
@@ -12,8 +12,7 @@ userRoute.post("/sign-up", ValidateReqBody(userSignupSchema) , userController.ha
 userRoute.post('/sign-in', ValidateReqBody(userLoginSchema), userController.handleUserLogin);
 
 //authenticated access
-
-
-
+userRoute.post("/sign-out", userController.handleUserLogout)
+userRoute.post("change-password", ValidateReqBody(userChangePasswordZodSchema), userController.handleChangePassword)
 
 export default userRoute;   

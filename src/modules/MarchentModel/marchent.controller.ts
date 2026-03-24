@@ -139,7 +139,7 @@ const handleUpdateMarchentProfile = async(req:Request , res:Response , next:Next
 const handleGetMyParcels = async(req:Request , res:Response , next:NextFunction)=>{
     const userId = req.user?.id;
     try {
-        const myParcelList = await marchentService.getMyParcels(userId);
+        const myParcelList = await marchentService.getMyParcels(userId as string);
         if(myParcelList.length > 0){
             return res.status(status.OK).send({
                 success:true,
@@ -157,6 +157,28 @@ const handleGetMyParcels = async(req:Request , res:Response , next:NextFunction)
         next(error)
     } 
 }
+
+const handleGetMarchentDetails = async(req:Request , res:Response , next:NextFunction)=>{
+    const marchentId = req.params.marchentId as string;
+    try {
+        const marchentDetails = await marchentService.getMarchentDetails(marchentId);
+        if(marchentDetails){
+            return res.status(status.OK).send({
+                success:true,
+                message:"Marchent Details",
+                data:marchentDetails
+            })
+        }
+        
+        return res.status(status.BAD_REQUEST).send({
+            success:false,
+            message:"Marchent Details Not Found",
+            data:null
+        })
+    } catch (error) {
+        next(error)
+    }
+}
 export const marchentController = {
     handleCreateMarchent,
     handleApproveMarchent,
@@ -164,5 +186,6 @@ export const marchentController = {
     handleGetMarchentProfile,
     handleDeleteMarchent,
     handleUpdateMarchentProfile,
-    handleGetMyParcels
+    handleGetMyParcels,
+    handleGetMarchentDetails
 }

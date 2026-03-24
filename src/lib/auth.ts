@@ -4,6 +4,7 @@ import { prisma } from "./prisma.js";
 import { env } from "../config/env.js";
 import { UserRole, UserStatus } from "../../generated/prisma/enums.js";
 import { nextCookies } from "better-auth/next-js";
+import { sendVerificationEmail } from "../utils/email.js";
 
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
@@ -13,7 +14,15 @@ export const auth = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
     emailAndPassword:{
-        enabled:true
+        enabled:true,
+        requireEmailVerification:true
+    },
+    emailVerification:{
+        sendOnSignUp:true,
+        sendOnSignIn:true,
+        sendVerificationEmail: async({user , url , token}, request)=>{
+            await sendVerificationEmail(user.email, "Verify your email" , url)
+        }
     },
     plugins:[
 

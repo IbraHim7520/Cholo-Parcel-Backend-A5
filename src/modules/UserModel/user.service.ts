@@ -1,5 +1,6 @@
+import { Request } from "express";
 import { auth } from "../../lib/auth"
-import { IUserLogin, IUserSignup } from "./user.interface"
+import { IUserChangePassword, IUserLogin, IUserSignup } from "./user.interface"
 
 const userSignUp =async(signupData: IUserSignup)=>{
     const data = await auth.api.signUpEmail({
@@ -22,8 +23,26 @@ const userSignin = async(siginData: IUserLogin)=>{
     })
     return data;
 }
+const userLogout = async(req:Request)=>{
+    return await auth.api.signOut({
+        headers: req.headers as Record<string , string>
+    })
+}
+
+const userChangePassword = async(passwordData:IUserChangePassword)=>{
+    return await auth.api.changePassword({
+        body:{
+            newPassword: passwordData.newPassword,
+            currentPassword: passwordData.newPassword,
+            revokeOtherSessions:true
+        }
+    })
+
+}
 
 export const userServices = {
     userSignUp,
-    userSignin
+    userSignin,
+    userChangePassword,
+    userLogout,
 }

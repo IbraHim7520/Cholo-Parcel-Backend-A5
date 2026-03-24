@@ -14,3 +14,7 @@ export const userLoginSchema = z.object({
     
 })
 
+export const userChangePasswordZodSchema = z.object({
+    oldPassword: z.string("Old password is required").min(6, "Old password must be at least 6 characters long").max(8, "Old password must be at most 8 characters long"),
+    newPassword: z.string("New password is required").min(6, "New password must be at least 6 characters long").max(8, "New password must be at most 8 characters long"),
+})

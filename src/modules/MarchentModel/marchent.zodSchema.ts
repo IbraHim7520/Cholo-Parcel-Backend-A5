@@ -8,7 +8,7 @@ export const CreateMarchentZodSchema = z.object({
     ComphanyEmail: z.email("Invalid email address"),
     ComphanyLogo: z.string().optional(),
     ComphanyWebsite: z.url("Invalid URL"),
-    ComphanyDescription: z.string().min(10, "Company description must be at least 10 characters long"),
+    ComphanyDescription: z.string().min(10, "Company description must be at least 10 characters long").max(200 , "Company description must be at most 200 characters long"),
     ComphanyType: z.enum(ComphanyType),
     ownerId: z.string("Owner ID is required"),
 })
@@ -20,6 +20,6 @@ export const UpdateMarchentZodSchema = z.object({
     ComphanyEmail: z.email("Invalid email address").optional(),
     ComphanyLogo: z.string().optional(),
     ComphanyWebsite: z.url("Invalid URL").optional(),
-    ComphanyDescription: z.string().min(10, "Company description must be at least 10 characters long").optional(),
+    ComphanyDescription: z.string().min(10, "Company description must be at least 10 characters long").max(200 , "Company description must be at most 200 characters long").optional(),
     ComphanyType: z.enum(ComphanyType).optional(),
 })
