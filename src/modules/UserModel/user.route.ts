@@ -2,6 +2,7 @@ import { Router } from "express"
 import { userController } from "./user.controller";
 import ValidateReqBody from "../../middlewere/ValidateZodSchema";
 import { userChangePasswordZodSchema, userLoginSchema, userSignupSchema } from "./user.zodschema";
+import upload from "../../config/multer";
 
 const userRoute = Router();
 
@@ -13,6 +14,10 @@ userRoute.post('/sign-in', ValidateReqBody(userLoginSchema), userController.hand
 
 //authenticated access
 userRoute.post("/sign-out", userController.handleUserLogout)
-userRoute.post("change-password", ValidateReqBody(userChangePasswordZodSchema), userController.handleChangePassword)
+userRoute.post("change-password", ValidateReqBody(userChangePasswordZodSchema), userController.handleChangePassword);
+userRoute.post("/upload-image", upload.single("image"), userController.handleUploadImage);
+
+
+userRoute.get("/me", userController.handleGetUserData)
 
 export default userRoute;   

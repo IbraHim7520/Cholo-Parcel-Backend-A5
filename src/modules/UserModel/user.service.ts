@@ -1,6 +1,9 @@
 import { Request } from "express";
 import { auth } from "../../lib/auth"
 import { IUserChangePassword, IUserLogin, IUserSignup } from "./user.interface"
+import cloudinary from "../../config/cloudinaryConfig";
+import { fromNodeHeaders } from "better-auth/node";
+import { deocodeToken } from "../../utils/jwtToken";
 
 const userSignUp =async(signupData: IUserSignup)=>{
     const data = await auth.api.signUpEmail({
@@ -40,9 +43,37 @@ const userChangePassword = async(passwordData:IUserChangePassword)=>{
 
 }
 
+
+const userUploadImage = async(file:Express.Multer.File)=>{
+    const result = new Promise((resolve , reject)=>{
+        cloudinary.uploader.upload_stream({
+            folder: "Cholo-Parcel-Users",
+            transformation: [{width: 500 , height: 500 , crop: "fill"}]
+        },
+        (err , result)=>{
+            if(err){
+                return reject(err)
+            }
+            resolve(result)
+        }
+    ).end(file.buffer)
+    })
+
+    return result
+}
+
+
+const userGetUserData = async(req:Request)=>{
+    const token = req.cookies?.accessToken;
+    const userData = deocodeToken(token);
+    return userData
+}
+
 export const userServices = {
     userSignUp,
     userSignin,
     userChangePassword,
     userLogout,
+    userUploadImage,
+    userGetUserData
 }

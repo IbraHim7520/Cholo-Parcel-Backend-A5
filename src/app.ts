@@ -13,17 +13,28 @@ import marchentRouter from './modules/MarchentModel/marchent.route';
 dotenv.config()
 const app: Application = express();
 
+
+
+app.use(cookieParser())
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
 app.use(cors({
-    origin: ["http://localhost:3000", env.FRONTEND_URL, "http://localhost:8000"],
+    origin: env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
+    
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 }))
 
+app.use("/api/auth", toNodeHandler(auth));
 //middlewere's
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser())
+
 
 app.get('/', (req: Request, res: Response) => {
     res.send({
@@ -32,7 +43,7 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 
-app.use("/api/auth", toNodeHandler(auth));
+
 
 
 app.use("/api/v1/users", userRoute),

@@ -17,10 +17,10 @@ export const sendVerificationEmail = async(userEmail:string , emailSubject:strin
     console.log("Verify URL: ", verifyUrl)
     try {
         const result = await transporter.sendMail({
-            from: `"Cholo Parcel Team" <${env.EMAIL_SENDER_SMTP_USER}>`,
+            from: `"Cholo Parcel " <${env.EMAIL_SENDER_SMTP_USER}>`,
             to: userEmail,
             subject: emailSubject,
-            text: `
+            html: `
                     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:20px 0;">
                     <tr>
                         <td align="center">

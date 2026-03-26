@@ -3,7 +3,6 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma.js";
 import { env } from "../config/env.js";
 import { UserRole, UserStatus } from "../../generated/prisma/enums.js";
-import { nextCookies } from "better-auth/next-js";
 import { sendVerificationEmail } from "../utils/email.js";
 
 export const auth = betterAuth({
@@ -13,6 +12,7 @@ export const auth = betterAuth({
     
     baseURL: process.env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
+    trustedOrigins: ["http://localhost:3000", "http://localhost:8000", env.FRONTEND_URL!],
     emailAndPassword:{
         enabled:true,
         requireEmailVerification:true
@@ -24,10 +24,28 @@ export const auth = betterAuth({
             await sendVerificationEmail(user.email, "Verify your email" , url)
         }
     },
-    plugins:[
-
-        nextCookies() //Always be in last as plugin
-    ],
+    advanced:{
+        cookies:{
+            session_token:{
+                name: "better-auth.session_token",
+                attributes:{
+                    httpOnly:true,
+                    secure: env.NODE_ENV === "production" ? true : false,
+                    sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+                    //partitioned:true
+                },
+            },
+            state:{
+                name: "better-auth.session_token",
+                attributes:{
+                    httpOnly:true,
+                    secure: env.NODE_ENV === "production" ? true : false,
+                    sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+                   // partitioned:true
+                }
+            }
+        }
+    },
     user:{
         additionalFields:{
             role:{
@@ -52,5 +70,6 @@ export const auth = betterAuth({
             }
 
         }
-    }
+    },
+
 });

@@ -19,7 +19,15 @@ var env = {
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
   FRONTEND_URL: process.env.FRONTEND_URL,
   NODE_ENV: process.env.NODE_ENV,
-  JWT_SECRET: process.env.JWT_SECRET
+  JWT_SECRET: process.env.JWT_SECRET,
+  EMAIL_SENDER_SMTP_USER: process.env.EMAIL_SENDER_SMTP_USER,
+  EMAIL_SENDER_SMTP_PASS: process.env.EMAIL_SENDER_SMTP_PASS,
+  EMAIL_SENDER_SMTP_HOST: process.env.EMAIL_SENDER_SMTP_HOST,
+  EMAIL_SENDER_SMTP_PORT: process.env.EMAIL_SENDER_SMTP_PORT,
+  EMAIL_SENDER_SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM,
+  CLOUDINARY_CLOUDE_NAME: process.env.CLOUDINARY_CLOUDE_NAME,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET
 };
 
 // src/global/notFound.ts
@@ -124,6 +132,18 @@ var VehicleType = {
   CYCLE: "CYCLE",
   VAN: "VAN"
 };
+var PercelStatus = {
+  REQUESTED: "REQUESTED",
+  CONFIRMED: "CONFIRMED",
+  PICKED: "PICKED",
+  SHIPPED: "SHIPPED",
+  ARRIVED_WARHOUSE: "ARRIVED_WARHOUSE",
+  IN_TRANSIT: "IN_TRANSIT",
+  DRIVER_ASSIGNED: "DRIVER_ASSIGNED",
+  DELIVERED: "DELIVERED",
+  CANCELLED: "CANCELLED",
+  RETURNED: "RETURNED"
+};
 var RiderRequestStatus = {
   PENDING: "PENDING",
   APPROVED: "APPROVED",
@@ -144,21 +164,135 @@ var connectionString = `${process.env.DATABASE_URL}`;
 var adapter = new PrismaPg({ connectionString });
 var prisma = new PrismaClient({ adapter });
 
+// src/utils/email.ts
+import nodemailer from "nodemailer";
+var transporter = nodemailer.createTransport({
+  host: env.EMAIL_SENDER_SMTP_HOST,
+  port: Number(env.EMAIL_SENDER_SMTP_PORT),
+  secure: Number(env.EMAIL_SENDER_SMTP_PORT) === 465,
+  auth: {
+    user: env.EMAIL_SENDER_SMTP_USER,
+    pass: env.EMAIL_SENDER_SMTP_PASS
+  }
+});
+var sendVerificationEmail = async (userEmail, emailSubject, verifyUrl) => {
+  console.log("User Email: ", userEmail);
+  console.log("Email Subject: ", emailSubject);
+  console.log("Verify URL: ", verifyUrl);
+  try {
+    const result = await transporter.sendMail({
+      from: `"Cholo Parcel " <${env.EMAIL_SENDER_SMTP_USER}>`,
+      to: userEmail,
+      subject: emailSubject,
+      html: `
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:20px 0;">
+                    <tr>
+                        <td align="center">
+                        
+                        <!-- Main Container -->
+                        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:30px;font-family:Arial,sans-serif;">
+                            
+                            <!-- Logo / Title -->
+                            <tr>
+                            <td align="center" style="padding-bottom:20px;">
+                                <h2 style="margin:0;color:#f97316;">Cholo Parcel</h2>
+                            </td>
+                            </tr>
+
+                            <!-- Heading -->
+                            <tr>
+                            <td align="center" style="padding-bottom:20px;">
+                                <h1 style="margin:0;font-size:22px;color:#333;">Verify Your Email</h1>
+                            </td>
+                            </tr>
+
+                            <!-- Message -->
+                            <tr>
+                            <td align="center" style="padding-bottom:25px;color:#555;font-size:14px;line-height:1.6;">
+                                Thanks for signing up! Please confirm your email address by clicking the button below.
+                            </td>
+                            </tr>
+
+                            <!-- Button -->
+                            <tr>
+                            <td align="center" style="padding-bottom:30px;">
+                                <a href="${verifyUrl}" 
+                                style="background:#f97316;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-size:14px;font-weight:bold;display:inline-block;">
+                                Verify Email
+                                </a>
+                            </td>
+                            </tr>
+
+                            <!-- Fallback Link -->
+                            <tr>
+                            <td align="center" style="font-size:12px;color:#888;word-break:break-all;">
+                                Or copy and paste this link into your browser:<br/>
+                                <a href="${verifyUrl}" style="color:#f97316;">${verifyUrl}</a>
+                            </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                            <td align="center" style="padding-top:30px;font-size:12px;color:#aaa;">
+                                \xA9 ${(/* @__PURE__ */ new Date()).getFullYear()} Cholo Parcel. All rights reserved.
+                            </td>
+                            </tr>
+
+                        </table>
+
+                        </td>
+                    </tr>
+                    </table>
+                    `
+    });
+    console.log("Email sent successfully: ", result);
+  } catch (error48) {
+    console.log("Email send error: ", error48);
+    throw new Error(error48.message ? error48.message : "Email send error: " + error48);
+  }
+};
+
 // src/lib/auth.ts
-import { nextCookies } from "better-auth/next-js";
 var auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql"
   }),
   baseURL: process.env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
+  trustedOrigins: ["http://localhost:3000", "http://localhost:8000", env.FRONTEND_URL],
   emailAndPassword: {
-    enabled: true
+    enabled: true,
+    requireEmailVerification: true
   },
-  plugins: [
-    nextCookies()
-    //Always be in last as plugin
-  ],
+  emailVerification: {
+    sendOnSignUp: true,
+    sendOnSignIn: true,
+    sendVerificationEmail: async ({ user, url: url2, token }, request) => {
+      await sendVerificationEmail(user.email, "Verify your email", url2);
+    }
+  },
+  advanced: {
+    cookies: {
+      session_token: {
+        name: "better-auth.session_token",
+        attributes: {
+          httpOnly: true,
+          secure: env.NODE_ENV === "production" ? true : false,
+          sameSite: env.NODE_ENV === "production" ? "none" : "lax"
+          //partitioned:true
+        }
+      },
+      state: {
+        name: "better-auth.session_token",
+        attributes: {
+          httpOnly: true,
+          secure: env.NODE_ENV === "production" ? true : false,
+          sameSite: env.NODE_ENV === "production" ? "none" : "lax"
+          // partitioned:true
+        }
+      }
+    }
+  },
   user: {
     additionalFields: {
       role: {
@@ -188,6 +322,27 @@ var auth = betterAuth({
 // src/modules/UserModel/user.route.ts
 import { Router } from "express";
 
+// src/config/cloudinaryConfig.ts
+import { v2 as cloudinary } from "cloudinary";
+cloudinary.config({
+  cloud_name: env.CLOUDINARY_CLOUDE_NAME,
+  api_key: env.CLOUDINARY_API_KEY,
+  api_secret: env.CLOUDINARY_API_SECRET,
+  secure: true
+});
+var cloudinaryConfig_default = cloudinary;
+
+// src/utils/jwtToken.ts
+import jwt from "jsonwebtoken";
+var createJWTToken = (payload, { expiresIn }) => {
+  const secret = env.JWT_SECRET;
+  const token = jwt.sign(payload, secret, { expiresIn });
+  return token;
+};
+var deocodeToken = (token) => {
+  return jwt.decode(token);
+};
+
 // src/modules/UserModel/user.service.ts
 var userSignUp = async (signupData) => {
   const data = await auth.api.signUpEmail({
@@ -209,20 +364,57 @@ var userSignin = async (siginData) => {
   });
   return data;
 };
+var userLogout = async (req) => {
+  return await auth.api.signOut({
+    headers: req.headers
+  });
+};
+var userChangePassword = async (passwordData) => {
+  return await auth.api.changePassword({
+    body: {
+      newPassword: passwordData.newPassword,
+      currentPassword: passwordData.newPassword,
+      revokeOtherSessions: true
+    }
+  });
+};
+var userUploadImage = async (file2) => {
+  const result = new Promise((resolve, reject) => {
+    cloudinaryConfig_default.uploader.upload_stream(
+      {
+        folder: "Cholo-Parcel-Users",
+        transformation: [{ width: 500, height: 500, crop: "fill" }]
+      },
+      (err, result2) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(result2);
+      }
+    ).end(file2.buffer);
+  });
+  return result;
+};
+var userGetUserData = async (req) => {
+  const token = req.cookies?.accessToken;
+  const userData = deocodeToken(token);
+  return userData;
+};
 var userServices = {
   userSignUp,
-  userSignin
+  userSignin,
+  userChangePassword,
+  userLogout,
+  userUploadImage,
+  userGetUserData
 };
 
 // src/modules/UserModel/user.controller.ts
 import status2 from "http-status";
 
-// src/utils/jwtToken.ts
-import jwt from "jsonwebtoken";
-var createJWTToken = (payload, { expiresIn }) => {
-  const secret = env.JWT_SECRET;
-  const token = jwt.sign(payload, secret, { expiresIn });
-  return token;
+// src/utils/Cookie.ts
+var SendCookies = (res, cookieName, cookieValue, options) => {
+  res.cookie(cookieName, cookieValue, options);
 };
 
 // src/modules/UserModel/user.controller.ts
@@ -239,23 +431,26 @@ var handleUserSignUp = async (req, res, next) => {
     }
     const accessToken = createJWTToken(signupResult.user, { expiresIn: "24h" });
     const refreshToken = createJWTToken(signupResult.user, { expiresIn: "7d" });
-    res.cookie("accessToken", accessToken, {
-      maxAge: 24 * 60 * 60 * 1e3,
+    SendCookies(res, "accessToken", accessToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "strict"
+      secure: env.NODE_ENV === "production" ? true : false,
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+      maxAge: 24 * 60 * 60 * 1e3
     });
-    res.cookie("refreshToken", refreshToken, {
-      maxAge: 7 * 24 * 60 * 60 * 1e3,
+    SendCookies(res, "refreshToken", refreshToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "strict"
+      secure: env.NODE_ENV === "production" ? true : false,
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1e3
     });
-    res.cookie("better-auth_session.token", signupResult.token, {
-      maxAge: 7 * 24 * 60 * 60 * 1e3,
+    SendCookies(res, "better-auth.session_token", signupResult.token, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "strict"
+      secure: env.NODE_ENV === "production" ? true : false,
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1e3
     });
     res.status(status2.OK).send({
       success: true,
@@ -283,23 +478,26 @@ var handleUserLogin = async (req, res, next) => {
     }
     const accessToken = createJWTToken(siginResult.user, { expiresIn: "24h" });
     const refreshToken = createJWTToken(siginResult.user, { expiresIn: "7d" });
-    res.cookie("accessToken", accessToken, {
-      maxAge: 24 * 60 * 60 * 1e3,
+    SendCookies(res, "accessToken", accessToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "strict"
+      secure: env.NODE_ENV === "production" ? true : false,
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+      maxAge: 24 * 60 * 60 * 1e3
     });
-    res.cookie("refreshToken", refreshToken, {
-      maxAge: 7 * 24 * 60 * 60 * 1e3,
+    SendCookies(res, "refreshToken", refreshToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "strict"
+      secure: env.NODE_ENV === "production" ? true : false,
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1e3
     });
-    res.cookie("better-auth_session.token", siginResult.token, {
-      maxAge: 7 * 24 * 60 * 60 * 1e3,
+    SendCookies(res, "better-auth.session_token", siginResult.token, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "strict"
+      secure: env.NODE_ENV === "production" ? true : false,
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1e3
     });
     res.status(status2.OK).send({
       success: true,
@@ -314,9 +512,101 @@ var handleUserLogin = async (req, res, next) => {
     next(error48);
   }
 };
+var handleUserLogout = async (req, res, next) => {
+  try {
+    const logoutResult = await userServices.userLogout(req);
+    if (!logoutResult.success) {
+      res.status(status2.BAD_REQUEST).send({
+        success: false,
+        message: "Failed to logout!",
+        data: logoutResult
+      });
+    }
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    res.clearCookie("better-auth.session_token");
+    res.status(status2.OK).send({
+      success: true,
+      message: "User Logout successfully.",
+      data: logoutResult
+    });
+  } catch (error48) {
+    next(error48);
+  }
+};
+var handleChangePassword = async (req, res, next) => {
+  try {
+    const changePasswordData = req.body;
+    const changePasswordResult = await userServices.userChangePassword(changePasswordData);
+    if (!changePasswordResult.user) {
+      res.status(status2.BAD_REQUEST).send({
+        success: false,
+        message: "Failed to change password!",
+        data: changePasswordResult
+      });
+    }
+    res.status(status2.OK).send({
+      success: true,
+      message: "Password changed successfully.",
+      data: changePasswordResult
+    });
+  } catch (error48) {
+    next(error48);
+  }
+};
+var handleUploadImage = async (req, res, next) => {
+  try {
+    const file2 = req.file;
+    if (!file2) {
+      return res.status(status2.BAD_REQUEST).send({
+        success: false,
+        message: "No Image Uploaded!",
+        data: null
+      });
+    }
+    const uploadResult = await userServices.userUploadImage(file2);
+    if (!uploadResult) {
+      return res.status(status2.BAD_REQUEST).send({
+        success: false,
+        message: "Failed to upload image!",
+        data: null
+      });
+    }
+    res.status(status2.OK).send({
+      success: true,
+      message: "Image uploaded successfully.",
+      data: uploadResult
+    });
+  } catch (error48) {
+    next(error48);
+  }
+};
+var handleGetUserData = async (req, res, next) => {
+  try {
+    const userData = await userServices.userGetUserData(req);
+    if (!userData) {
+      res.status(status2.BAD_REQUEST).send({
+        success: false,
+        message: "Failed to get user data!",
+        data: null
+      });
+    }
+    res.status(status2.OK).send({
+      success: true,
+      message: "User data fetched successfully.",
+      data: userData
+    });
+  } catch (error48) {
+    next(error48);
+  }
+};
 var userController = {
   handleUserSignUp,
-  handleUserLogin
+  handleUserLogin,
+  handleUserLogout,
+  handleChangePassword,
+  handleUploadImage,
+  handleGetUserData
 };
 
 // src/middlewere/ValidateZodSchema.ts
@@ -14114,15 +14404,43 @@ var userLoginSchema = zod_default.object({
   email: zod_default.email("Invalid email address"),
   password: zod_default.string("Password is required").min(6, "Password must be at least 6 characters long").max(8, "Password must be at most 8 characters long")
 });
+var userChangePasswordZodSchema = zod_default.object({
+  oldPassword: zod_default.string("Old password is required").min(6, "Old password must be at least 6 characters long").max(8, "Old password must be at most 8 characters long"),
+  newPassword: zod_default.string("New password is required").min(6, "New password must be at least 6 characters long").max(8, "New password must be at most 8 characters long")
+});
+
+// src/config/multer.ts
+import multer from "multer";
+var storage = multer.memoryStorage();
+var upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024
+    // 5MB
+  },
+  fileFilter: (req, file2, cb) => {
+    if (!file2.mimetype.startsWith("image/")) {
+      return cb(new Error("Only image files allowed!"));
+    }
+    cb(null, true);
+  }
+});
+var multer_default = upload;
 
 // src/modules/UserModel/user.route.ts
 var userRoute = Router();
 userRoute.post("/sign-up", ValidateZodSchema_default(userSignupSchema), userController.handleUserSignUp);
 userRoute.post("/sign-in", ValidateZodSchema_default(userLoginSchema), userController.handleUserLogin);
+userRoute.post("/sign-out", userController.handleUserLogout);
+userRoute.post("change-password", ValidateZodSchema_default(userChangePasswordZodSchema), userController.handleChangePassword);
+userRoute.post("/upload-image", multer_default.single("image"), userController.handleUploadImage);
+userRoute.get("/me", userController.handleGetUserData);
 var user_route_default = userRoute;
 
 // src/middlewere/handleGlobalErrors.ts
 import status3 from "http-status";
+import { PrismaClientValidationError as PrismaClientValidationError2 } from "@prisma/client/runtime/client";
+import { APIError } from "better-auth";
 var GlobalError = (err, req, res, next) => {
   if (env.NODE_ENV === "development") {
     console.log("Error From Global Error-> ", err);
@@ -14140,6 +14458,31 @@ var GlobalError = (err, req, res, next) => {
       message: "Internal Server Error",
       error: zodError
     });
+  }
+  if (err instanceof APIError) {
+    res.status(statusCode).json({
+      success: false,
+      message: err.body?.message,
+      error: err.message
+    });
+  }
+  if (err instanceof PrismaClientValidationError2) {
+    if (Array.isArray(err)) {
+      const messages = err.map((issue2) => {
+        return issue2.message;
+      });
+      res.status(statusCode).json({
+        success: false,
+        message: "Input Validatio  Error",
+        error: messages
+      });
+    } else {
+      res.status(statusCode).json({
+        success: false,
+        message: "Input Validatio  Error",
+        error: err.message
+      });
+    }
   }
   res.status(statusCode).json({
     success: false,
@@ -14259,23 +14602,52 @@ var getRiderProfile = async (userId) => {
     }
   });
 };
+var getMyParcels = async (userId) => {
+  const riderData = await prisma.rider.findUnique({ where: { userId } });
+  if (!riderData) {
+    throw new Error("Rider not found");
+  }
+  const riderId = riderData.id;
+  return await prisma.percel.findMany({
+    where: {
+      riderId,
+      status: PercelStatus.REQUESTED
+    },
+    include: {
+      merchent: {
+        select: {
+          ComphanyName: true,
+          id: true,
+          ComphanyEmail: true,
+          ComphanyAddress: true,
+          ComphanyPhone: true
+        }
+      }
+    }
+  });
+};
+var updatePercelStatus = async (percelId, status6) => {
+  return await prisma.percel.update({
+    where: {
+      id: percelId
+    },
+    data: {
+      status: status6.status
+    }
+  });
+};
 var riderService = {
   createRider,
   changeRiderStatustoApprove,
   changeRiderStatustoReject,
   updateRider,
-  getRiderProfile
+  getRiderProfile,
+  updatePercelStatus,
+  getMyParcels
 };
 
 // src/modules/RiderModel/rider.controller.ts
 import status4 from "http-status";
-
-// src/utils/Cookie.ts
-var SendCookies = (res, cookieName, cookieValue, options) => {
-  res.cookie(cookieName, cookieValue, options);
-};
-
-// src/modules/RiderModel/rider.controller.ts
 var handleCreateRider = async (req, res, next) => {
   const riderData = req.body;
   try {
@@ -14382,12 +14754,52 @@ var handleGetRiderProfile = async (req, res, next) => {
     next(error48);
   }
 };
+var handleGetMyParcels = async (req, res, next) => {
+  const userId = req.user?.id;
+  try {
+    const result = await riderService.getMyParcels(userId);
+    if (!result) {
+      res.status(status4.BAD_REQUEST).send({
+        success: false,
+        message: "Failed to get my parcels!!"
+      });
+    }
+    res.status(status4.OK).send({
+      success: true,
+      message: "My parcels fetched successfully.",
+      data: result
+    });
+  } catch (error48) {
+    next(error48);
+  }
+};
+var handleUpdatePercelStatus = async (req, res, next) => {
+  const percelId = req.params.percelId;
+  const status6 = req.body.status;
+  try {
+    const result = await riderService.updatePercelStatus(percelId, status6);
+    if (!result) {
+      res.status(status6.BAD_REQUEST).send({
+        success: false,
+        message: "Failed to update percel status!!"
+      });
+    }
+    res.status(status6.OK).send({
+      success: true,
+      message: "Percel status updated successfully."
+    });
+  } catch (error48) {
+    next(error48);
+  }
+};
 var riderController = {
   handleCreateRider,
   handleChangeRiderStatustoApprove,
   handleChangeRiderStatustoReject,
   handleUpdateRider,
-  handleGetRiderProfile
+  handleGetRiderProfile,
+  handleGetMyParcels,
+  handleUpdatePercelStatus
 };
 
 // src/modules/RiderModel/rider.zodSchema.ts
@@ -14426,6 +14838,11 @@ var updateRiderZodSchema = zod_default.object({
   vehicleType: zod_default.enum(VehicleType).optional(),
   vehicleNumber: zod_default.string("Vehicle Number is required").optional()
 });
+var UpdatePercelStatusZodSchema = zod_default.object({
+  status: zod_default.enum(PercelStatus).refine((value) => {
+    return value.toUpperCase();
+  }, "Invalid status")
+});
 
 // src/modules/RiderModel/rider.route.ts
 var riderRoute = Router2();
@@ -14434,6 +14851,8 @@ riderRoute.patch("/approve-rider/:riderId", riderController.handleChangeRiderSta
 riderRoute.patch("/reject-rider/:riderId", riderController.handleChangeRiderStatustoReject);
 riderRoute.patch("/update-profile", ValidateZodSchema_default(updateRiderZodSchema), riderController.handleUpdateRider);
 riderRoute.get("/profile", riderController.handleGetRiderProfile);
+riderRoute.get("/my-parcels", riderController.handleGetMyParcels);
+riderRoute.patch("update-percel-status/:percelId", ValidateZodSchema_default(UpdatePercelStatusZodSchema), riderController.handleUpdatePercelStatus);
 var rider_route_default = riderRoute;
 
 // src/modules/MarchentModel/marchent.route.ts
@@ -14551,7 +14970,7 @@ var updateMarchent = async (marchentId, updateData) => {
   });
   return marchentUpdate;
 };
-var getMyParcels = async (userId) => {
+var getMyParcels2 = async (userId) => {
   const marchentData = await prisma.merchent.findUnique({
     where: {
       ownerId: userId
@@ -14566,6 +14985,24 @@ var getMyParcels = async (userId) => {
   });
   return parcels;
 };
+var getMarchentDetails = async (marchentId) => {
+  const marchentDetails = await prisma.merchent.findUnique({
+    where: {
+      id: marchentId
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true
+        }
+      }
+    }
+  });
+  return marchentDetails;
+};
 var marchentService = {
   createMarchent,
   approveMarchent,
@@ -14573,7 +15010,8 @@ var marchentService = {
   getMarchentProfile,
   deleteMarchent,
   updateMarchent,
-  getMyParcels
+  getMarchentDetails,
+  getMyParcels: getMyParcels2
 };
 
 // src/modules/MarchentModel/marchent.controller.ts
@@ -14699,7 +15137,7 @@ var handleUpdateMarchentProfile = async (req, res, next) => {
     next(error48);
   }
 };
-var handleGetMyParcels = async (req, res, next) => {
+var handleGetMyParcels2 = async (req, res, next) => {
   const userId = req.user?.id;
   try {
     const myParcelList = await marchentService.getMyParcels(userId);
@@ -14719,6 +15157,26 @@ var handleGetMyParcels = async (req, res, next) => {
     next(error48);
   }
 };
+var handleGetMarchentDetails = async (req, res, next) => {
+  const marchentId = req.params.marchentId;
+  try {
+    const marchentDetails = await marchentService.getMarchentDetails(marchentId);
+    if (marchentDetails) {
+      return res.status(status5.OK).send({
+        success: true,
+        message: "Marchent Details",
+        data: marchentDetails
+      });
+    }
+    return res.status(status5.BAD_REQUEST).send({
+      success: false,
+      message: "Marchent Details Not Found",
+      data: null
+    });
+  } catch (error48) {
+    next(error48);
+  }
+};
 var marchentController = {
   handleCreateMarchent,
   handleApproveMarchent,
@@ -14726,7 +15184,8 @@ var marchentController = {
   handleGetMarchentProfile,
   handleDeleteMarchent,
   handleUpdateMarchentProfile,
-  handleGetMyParcels
+  handleGetMyParcels: handleGetMyParcels2,
+  handleGetMarchentDetails
 };
 
 // src/modules/MarchentModel/marchent.zodSchema.ts
@@ -14737,7 +15196,7 @@ var CreateMarchentZodSchema = zod_default.object({
   ComphanyEmail: zod_default.email("Invalid email address"),
   ComphanyLogo: zod_default.string().optional(),
   ComphanyWebsite: zod_default.url("Invalid URL"),
-  ComphanyDescription: zod_default.string().min(10, "Company description must be at least 10 characters long"),
+  ComphanyDescription: zod_default.string().min(10, "Company description must be at least 10 characters long").max(200, "Company description must be at most 200 characters long"),
   ComphanyType: zod_default.enum(ComphanyType),
   ownerId: zod_default.string("Owner ID is required")
 });
@@ -14748,7 +15207,7 @@ var UpdateMarchentZodSchema = zod_default.object({
   ComphanyEmail: zod_default.email("Invalid email address").optional(),
   ComphanyLogo: zod_default.string().optional(),
   ComphanyWebsite: zod_default.url("Invalid URL").optional(),
-  ComphanyDescription: zod_default.string().min(10, "Company description must be at least 10 characters long").optional(),
+  ComphanyDescription: zod_default.string().min(10, "Company description must be at least 10 characters long").max(200, "Company description must be at most 200 characters long").optional(),
   ComphanyType: zod_default.enum(ComphanyType).optional()
 });
 
@@ -14760,27 +15219,32 @@ marchentRouter.patch("/reject-marchent/:id", marchentController.handleRejectMarc
 marchentRouter.get("/marchent-profile", marchentController.handleGetMarchentProfile);
 marchentRouter.delete("/delete-marchent/:id", marchentController.handleDeleteMarchent);
 marchentRouter.patch("/update-marchent/:id", ValidateZodSchema_default(UpdateMarchentZodSchema), marchentController.handleUpdateMarchentProfile);
+marchentRouter.get("/details-marchent/:marchentId", marchentController.handleGetMarchentDetails);
 marchentRouter.get("/my-parcels", marchentController.handleGetMyParcels);
 var marchent_route_default = marchentRouter;
 
 // src/app.ts
 dotenv2.config();
 var app = express();
-app.use(cors({
-  origin: ["http://localhost:3000", env.FRONTEND_URL, "http://localhost:8000"],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"],
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
-}));
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(cors({
+  origin: env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+}));
+app.use("/api/auth", toNodeHandler(auth));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
   res.send({
     message: `Server is running on PORT: ${env.PORT}`
   });
 });
-app.use("/api/auth", toNodeHandler(auth));
 app.use("/api/v1/users", user_route_default), app.use("/api/v1/riders", rider_route_default), app.use("/api/v1/marchents", marchent_route_default);
 app.use(notFoundRoute);
 app.use(handleGlobalErrors_default);

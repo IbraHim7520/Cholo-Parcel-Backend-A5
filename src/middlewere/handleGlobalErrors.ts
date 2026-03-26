@@ -3,6 +3,12 @@ import { env } from "../config/env";
 import  { ZodError } from 'zod'
 import status from "http-status";
 import { PrismaClientValidationError } from "@prisma/client/runtime/client";
+import { APIError } from "better-auth";
+// Error From Global Error -> [APIError: Email not verified] {
+//         status: 'FORBIDDEN',
+//             body: { message: 'Email not verified', code: 'EMAIL_NOT_VERIFIED' },
+//         headers: { },
+//         statusCode: 403
 const GlobalError = (err:any , req:Request , res:Response , next:NextFunction)=>{
     if(env.NODE_ENV === 'development'){
         console.log("Error From Global Error-> ", err);
@@ -24,7 +30,13 @@ const GlobalError = (err:any , req:Request , res:Response , next:NextFunction)=>
         })
     }
 
-
+   if(err instanceof APIError){
+    res.status(statusCode).json({
+        success: false,
+        message: err.body?.message,
+        error: err.message
+    })
+   }
 
     if(err instanceof PrismaClientValidationError){
         if(Array.isArray(err)){

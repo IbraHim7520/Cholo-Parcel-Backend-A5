@@ -3,6 +3,7 @@ import { userServices } from "./user.service"
 import status from "http-status"
 import { createJWTToken } from "../../utils/jwtToken"
 import { env } from "../../config/env"
+import { SendCookies } from "../../utils/Cookie"
 
 const handleUserSignUp =async(req:Request , res:Response, next:NextFunction)=>{
     const signupData = req.body
@@ -18,23 +19,26 @@ const handleUserSignUp =async(req:Request , res:Response, next:NextFunction)=>{
 
         const accessToken = createJWTToken(signupResult.user, { expiresIn: "24h" });
         const refreshToken = createJWTToken(signupResult.user,  { expiresIn: "7d" });
-        res.cookie("accessToken", accessToken, {
+        SendCookies(res , "accessToken", accessToken, {
+            httpOnly:true,
+            secure: env.NODE_ENV === "production" ? true : false,
+            sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
             maxAge: 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            secure: env.NODE_ENV === "production",
-            sameSite: "strict"
         })
-        res.cookie("refreshToken", refreshToken, {
+        SendCookies(res , "refreshToken", refreshToken, {
+            httpOnly:true,
+            secure: env.NODE_ENV === "production" ? true : false,
+            sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            secure: env.NODE_ENV === "production",
-            sameSite: "strict"
         })
-        res.cookie("better-auth_session.token", signupResult.token, {
+        SendCookies(res , "better-auth.session_token", signupResult.token as string, {
+            httpOnly:true,
+            secure: env.NODE_ENV === "production" ? true : false,
+            sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            secure: env.NODE_ENV === "production",
-            sameSite: "strict"
         })
         res.status(status.OK).send({
             success:true,
@@ -62,26 +66,31 @@ const handleUserLogin = async(req:Request , res:Response , next:NextFunction)=>{
                 data: siginResult
             })            
         }
+
+        
         
         const accessToken = createJWTToken(siginResult.user, { expiresIn: "24h" });
         const refreshToken = createJWTToken(siginResult.user, { expiresIn: "7d" });
-        res.cookie("accessToken", accessToken, {
+        SendCookies(res , "accessToken", accessToken, {
+            httpOnly:true,
+            secure: env.NODE_ENV === "production" ? true : false,
+            sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
             maxAge: 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            secure: env.NODE_ENV === "production",
-            sameSite: "strict"
         })
-        res.cookie("refreshToken", refreshToken, {
+        SendCookies(res , "refreshToken", refreshToken, {
+            httpOnly:true,
+            secure: env.NODE_ENV === "production" ? true : false,
+            sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            secure: env.NODE_ENV === "production",
-            sameSite: "strict"
         })
-        res.cookie("better-auth_session.token", siginResult.token , {
+        SendCookies(res , "better-auth.session_token", siginResult.token, {
+            httpOnly:true,
+            secure: env.NODE_ENV === "production" ? true : false,
+            sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            secure: env.NODE_ENV === "production",
-            sameSite: "strict"
         })
         res.status(status.OK).send({
             success: true,
@@ -90,6 +99,7 @@ const handleUserLogin = async(req:Request , res:Response , next:NextFunction)=>{
                 accessToken,
                 refreshToken,
                 ...siginResult
+               
             }
             
         })
@@ -110,7 +120,7 @@ const handleUserLogout = async(req:Request , res:Response , next:NextFunction)=>
         }
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
-        res.clearCookie("better-auth_session.token");
+        res.clearCookie("better-auth.session_token");
         res.status(status.OK).send({
             success: true,
             message: "User Logout successfully.",
@@ -142,9 +152,61 @@ const handleChangePassword = async(req:Request , res:Response , next:NextFunctio
         next(error)
     }
 }
+
+const handleUploadImage = async(req:Request , res:Response , next:NextFunction)=>{
+   try {
+    const file = req.file;
+    if(!file){
+        return res.status(status.BAD_REQUEST).send({
+            success: false,
+            message: "No Image Uploaded!",
+            data:null
+        })
+    }
+    const uploadResult = await userServices.userUploadImage(file);
+    if(!uploadResult){
+        return res.status(status.BAD_REQUEST).send({
+            success: false,
+            message: "Failed to upload image!",
+            data:null
+        })
+    }
+    res.status(status.OK).send({
+        success: true,
+        message: "Image uploaded successfully.",
+        data: uploadResult
+    })
+   } catch (error) {
+    next(error)
+   }
+}
+
+const handleGetUserData = async(req:Request , res:Response , next:NextFunction)=>{
+    try {
+        const userData = await userServices.userGetUserData(req);
+        if(!userData){
+            res.status(status.BAD_REQUEST).send({
+                success: false,
+                message: "Failed to get user data!",
+                data: null
+            })
+        }
+        res.status(status.OK).send({
+            success: true,
+            message: "User data fetched successfully.",
+            data: userData
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+
 export const userController = {
     handleUserSignUp,
     handleUserLogin,
     handleUserLogout,
-    handleChangePassword
+    handleChangePassword,
+    handleUploadImage,
+    handleGetUserData
 }
