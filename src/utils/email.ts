@@ -81,7 +81,7 @@ export const sendVerificationEmail = async(userEmail:string , emailSubject:strin
                     </table>
                     `
         })
-        console.log("Email sent successfully: ", result)
+      //  console.log("Email sent successfully: ", result)
     } catch (error:any) {
         console.log("Email send error: ", error)
         throw new Error(error.message ? error.message : "Email send error: " + error)

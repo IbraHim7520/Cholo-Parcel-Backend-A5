@@ -10,6 +10,7 @@ import GlobalError from './middlewere/handleGlobalErrors';
 import dotenv from 'dotenv';
 import riderRoute from './modules/RiderModel/rider.route';
 import marchentRouter from './modules/MarchentModel/marchent.route';
+import parcelRoute from './modules/Parcels/parcel.route';
 dotenv.config()
 const app: Application = express();
 
@@ -49,6 +50,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use("/api/v1/users", userRoute),
 app.use("/api/v1/riders", riderRoute),
 app.use("/api/v1/marchents", marchentRouter);
+app.use("/api/v1/parcels", parcelRoute);
 // app.use("/api/v1/admins")
 
 

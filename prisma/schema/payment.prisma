@@ -11,9 +11,8 @@ model Payment {
 
     paymentMethod PaymentMethode @default(CASH)
     transactionId String?
-    isPaid Boolean @default(false)
 
-    @@index([isPaid])
+    
     @@index([paymentMethod])
     @@index([percelId])
     @@index([status])

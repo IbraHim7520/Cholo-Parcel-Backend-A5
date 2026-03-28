@@ -66,6 +66,7 @@ const userUploadImage = async(file:Express.Multer.File)=>{
 const userGetUserData = async(req:Request)=>{
     const token = req.cookies?.accessToken;
     const userData = deocodeToken(token);
+   
     return userData
 }
 

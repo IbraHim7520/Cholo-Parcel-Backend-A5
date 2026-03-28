@@ -16,7 +16,7 @@ model Rider {
     experience String @default("No Experience")
     vehicleType VehicleType @default(BIKE)
 
-    isAssigned Boolean @default(false)
+    isAvailable Boolean @default(true)
     assignedAt DateTime? 
 
     vehicleNumber String
@@ -25,7 +25,7 @@ model Rider {
 
     @@map("rider")
     @@index([userId])
-    @@index([isAssigned])
+    @@index([isAvailable])
     @@index([isBanned])
 
     percels Percel[]

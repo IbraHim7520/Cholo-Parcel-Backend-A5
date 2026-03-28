@@ -6,7 +6,6 @@ model Percel {
     price Int
     status PercelStatus @default(REQUESTED)
     pickupLocation String @db.VarChar(255)
-    deliveryLocation String @db.VarChar(255)
     isSelfPickup Boolean @default(false)
 
     percelType PercelType @default(PAKAGE)
@@ -22,6 +21,8 @@ model Percel {
     merchent Merchent @relation(fields: [merchentId], references: [id])
 
     riderId String?
+    rider Rider? @relation(fields: [riderId], references: [id])
+
 
     @@map("percels")
 
@@ -29,7 +30,7 @@ model Percel {
     @@index([percelType])
     @@index([merchentId])
     @@index([status])
-    riders Rider[]
+    
     reviews Reviews[]
     payments Payment?
 }
