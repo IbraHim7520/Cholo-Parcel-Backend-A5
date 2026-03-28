@@ -5,15 +5,16 @@ import { prisma } from "../../lib/prisma";
 import { PercelStatus } from "../../../generated/prisma/enums";
 
 const createParcel = async(req:Request , parcelPayload:ICreateParcel)=>{
-    console.log(parcelPayload)
+    
     const userData = await userServices.userGetUserData(req);
-    const userId = userData?.id || "hNfVJattPmHigWQzvD52C8BCXYb0Nvwu";
+    const userId = userData?.id ;
     
     if(!userId) return "User not found!!";
     
-    const marchent = await prisma.merchent.findUnique({ where: { ownerId: "hNfVJattPmHigWQzvD52C8BCXYb0Nvwu"}});
+    const marchent = await prisma.merchent.findUnique({ where: { ownerId: userId}});
     if(!marchent) return "Marchent not found!!";
     const marchentId = marchent.id ;
+    
     parcelPayload.pickupTime = new Date(parcelPayload.pickupTime);
     parcelPayload.deliveryTime = new Date(parcelPayload.deliveryTime);
     const parcelCreate = await prisma.percel.create({
@@ -51,8 +52,22 @@ const queryParcel = async(query:string , userId:string)=>{
     });
     return parcels;
 }
+
+const getMarchentParcel = async(userId:string)=>{
+    const marchentData = await prisma.merchent.findUnique({where: {ownerId: userId}});
+    const marchetID = marchentData?.id;
+    if(!marchetID) return "Marchent not found!!";
+    const parcels = await prisma.percel.findMany({
+        where: {
+            merchentId: marchetID
+        }
+    });
+    return parcels;
+}
+
 export const parcelService = {
     createParcel,
     getAllParcels,
-    queryParcel
+    queryParcel,
+    getMarchentParcel
 }

@@ -11,6 +11,7 @@ export interface ICreateParcel {
     reciverName:string;
     reciverContact:string;
     reciverAddress:string;
+    deliveryPrice:number;
     pickupTime:Date;
     deliveryTime:Date;
 

@@ -1,4 +1,4 @@
-import { PercelStatus, RiderRequestStatus, UserStatus } from "../../../generated/prisma/enums";
+import { MarchentStatus, NotificationTarget, PercelStatus, RiderRequestStatus, UserRole, UserStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma"
 
 const getAdminProfile = async(userId:string)=>{
@@ -102,11 +102,120 @@ const getStatistics = async () => {
         cancelledParcels
     };
 }
+
+const updateUser = async(id:string , payload:any)=>{
+    const isUserExist = await prisma.user.findUnique({
+        where: { id },
+    });
+
+    if (!isUserExist) {
+        throw new Error('User not found!');
+    }
+
+    const result = await prisma.user.update({
+        where: { id },
+        data: payload, // This handles { role: 'RIDER' } or { status: 'ACTIVE' }
+        select: {
+            id: true,
+            name: true,
+            role: true,
+            status: true,
+            updatedAt: true
+        }
+    });
+    return result;
+}
+
+const assignRiderToDuty = async (riderId: string) => {
+    const rider = await prisma.rider.findUnique({
+        where: { id: riderId },
+    });
+
+    if (!rider) throw new Error("Rider not found");
+    if (rider.isBanned) throw new Error("Cannot modify a banned rider");
+
+    // Toggle the boolean: if true -> false, if false -> true
+    const newStatus = !rider.isAvailable;
+
+    const updatedRider = await prisma.rider.update({
+        where: { id: riderId },
+        data: {
+            isAvailable: newStatus,
+            // If we are unassigning (making available), clear the timestamp
+            assignedAt: newStatus ? null : new Date(),
+        },
+    });
+
+    return {
+        updatedRider,
+        message: newStatus ? "Rider is now Available" : "Rider has been Assigned"
+    };
+};
+
+const updateMarchent = async(id:string , status:string)=>{
+    // 1. Check if merchant exists
+    const merchant = await prisma.merchent.findUnique({
+        where: { id }
+    });
+
+    if (!merchant) {
+        throw new Error("Merchant not found");
+    }
+
+    if(status === MarchentStatus.APPROVED && merchant.status === MarchentStatus.APPROVED){
+        throw new Error("Merchant is already approved");
+    }
+    if(status === MarchentStatus.REJECTED && merchant.status === MarchentStatus.REJECTED){
+        throw new Error("Merchant is already rejected");
+    }
+
+    if(status === MarchentStatus.PENDING && merchant.status === MarchentStatus.PENDING){
+        throw new Error("Merchant is already pending");
+    }
+
+    // 2. Update status
+    const updatedMerchant = await prisma.merchent.update({
+        where: {
+            id: id
+        },
+        data: {
+            status: status as MarchentStatus,
+            UpdatedAt: new Date()
+        }
+    });
+    if (updatedMerchant.status === MarchentStatus.APPROVED){
+        await prisma.user.update({
+            where: {
+                id: updatedMerchant.ownerId
+            },
+            data: {
+                role:   UserRole.MERCHENT
+            }
+        });
+    }
+
+    return updatedMerchant;
+}
+
+const createNotification = async(title:string , message:string , target:string)=>{
+    const notification = await prisma.notification.create({
+        data: {
+            title,
+            message,
+            target: target as NotificationTarget
+        }
+    });
+    return notification;
+}
 export const adminService = {
     getAdminProfile,
     getAllUsers,
     getAllMarchent,
     getAllRiders,
     getStatistics,
-    getAllParcels
+    getAllParcels,
+    updateUser,
+    assignRiderToDuty,
+    updateMarchent,
+    createNotification
 }   

@@ -1,23 +1,16 @@
 import { VehicleType } from "../../../generated/prisma/enums";
 
 export interface ICreateRider {
-    riderSignupData : {
-        name: string,
-        email: string,
-        password: string,
-        image?: string,
-    }
-    riderInfoData : {
-        nid:string,
-        dob:string,
-        bloodGrouph:string,
-        contact:string,
-        address:string,
-        deliveryArea:string,
-        experience?:string,
-        vehicleType: VehicleType,
-        vehicleNumber:string  
-    }
+    nid:string,
+    dob:string,
+    bloodGrouph:string,
+    contact:string,
+    address:string,
+    deliveryArea:string,
+    experience?:string,
+    vehicleType: VehicleType,
+    vehicleNumber:string,
+    userId:string
 }
 
 

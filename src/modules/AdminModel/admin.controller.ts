@@ -124,11 +124,97 @@ const handleGetAllParcels = async(req:Request , res:Response , next:NextFunction
         next(error)
     }
 }   
+
+const handleUpdateUser = async(req:Request , res:Response , next:NextFunction)=>{
+    try {
+        const {id} = req.params;
+        const payload = req.body;
+        const updatedUser = await adminService.updateUser(id as string, payload);
+        if(!updatedUser){
+            return res.status(status.NOT_FOUND).send({
+                success:false,
+                message: "User not found",
+                data:updatedUser
+            })
+        }
+        res.status(status.OK).send({
+            success:true,
+            message: "User updated successfully",
+            data:updatedUser
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const handleAssignRider = async(req:Request , res:Response , next:NextFunction)=>{
+    try {
+        const { riderId } = req.params;
+        const result = await adminService.assignRiderToDuty(riderId as string);
+
+        res.status(200).json({
+            success: true,
+            message: "Rider assigned to duty successfully",
+            data: result,
+        });
+    } catch (error: any) {
+       next(error)
+    }
+}
+
+const handleMarchentStatus = async(req:Request , res:Response , next:NextFunction)=>{
+    try {
+        const {id} = req.params;
+        const {status} = req.body;
+        
+        const updatedMarchent = await adminService.updateMarchent(id as string, status as string);
+        if(!updatedMarchent){
+            return res.status(status.NOT_FOUND).send({
+                success:false,
+                message: "Marchent not found",
+                data:updatedMarchent
+            })
+        }
+        res.status(200).send({
+            success:true,
+            message: "Marchent updated successfully",
+            data:updatedMarchent
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const handleCreateNotification = async(req:Request , res:Response , next:NextFunction)=>{
+    try {
+        const {title , message , target} = req.body;
+        const notification = await adminService.createNotification(title , message , target);
+        if(!notification){
+            return res.status(status.NOT_FOUND).send({
+                success:false,
+                message: "Notification not found",
+                data:notification
+            })
+        }
+        res.status(status.OK).send({
+            success:true,
+            message: "Notification created successfully",
+            data:notification
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
 export const adminController = {
     handleAdminProfile,
     handleGetAllUsers,
     handleGetAllMarchent,
     handleGetAllRiders,
     handleGetStatistics,
-    handleGetAllParcels
+    handleGetAllParcels,
+    handleAssignRider,
+    handleUpdateUser,
+    handleMarchentStatus,
+    handleCreateNotification
 }

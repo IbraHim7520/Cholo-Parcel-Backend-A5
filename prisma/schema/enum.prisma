@@ -24,10 +24,7 @@ enum VehicleType {
     VAN
 }
 
-enum NotificationStatus {
-    READ
-    UNREAD
-}
+
 
 enum PaymentStatus {
     PAID
@@ -75,4 +72,13 @@ enum MarchentStatus {
     PENDING
     APPROVED
     REJECTED
+}
+
+enum NotificationTarget {
+    ALL
+    USER
+    MERCHENT
+    RIDER
+    ADMIN
+
 }

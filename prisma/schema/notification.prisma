@@ -2,12 +2,20 @@ model Notification {
     id String @id @default(uuid())
     title String
     message String
+    target NotificationTarget @default(ALL)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
-    status NotificationStatus @default(UNREAD)
-
-    userId String
-    user User @relation(fields: [userId], references: [id])
+    
 
     @@map("notifications")
 }
+
+
+// enum NotificationTarget {
+//     ALL
+//     USER
+//     MERCHENT
+//     RIDER
+//     ADMIN
+
+// }

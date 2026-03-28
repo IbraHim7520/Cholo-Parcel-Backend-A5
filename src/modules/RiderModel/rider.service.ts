@@ -1,4 +1,4 @@
-import { PercelStatus, RiderRequestStatus, UserStatus } from "../../../generated/prisma/enums";
+import { PercelStatus, RiderRequestStatus, UserRole, UserStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { userServices } from "../UserModel/user.service";
 import { ICreateRider, IUpdateParcelStatus, IUpdateRiderProfile } from "./rider.interface"
@@ -63,63 +63,34 @@ import { ICreateRider, IUpdateParcelStatus, IUpdateRiderProfile } from "./rider.
 //     };
 // });
 const createRider = async (riderPayload: ICreateRider) => {
-    const riderLoginData = riderPayload.riderSignupData;
-    const riderData = riderPayload.riderInfoData;
-
-    try {
-        let isUserloggedin;
-        isUserloggedin = await prisma.user.findUnique({
-            where:{
-                email: riderLoginData.email
-            }
-        });
-        if(isUserloggedin?.status === UserStatus.DEACTIVE){
-            throw new Error("User is not active");
-        }
-        if(isUserloggedin?.status === UserStatus.DELETED){
-            throw new Error("User is deleted");
-        }
-
-        const isRider = await prisma.rider.findUnique({
-            where:{
-                userId: isUserloggedin?.id
+    try{
+        const riderResult = await prisma.rider.create({
+            data:{
+                nid: riderPayload.nid,
+                dob: riderPayload.dob,
+                bloodGrouph: riderPayload.bloodGrouph,
+                contact: riderPayload.contact,
+                address: riderPayload.address,
+                deliveryArea: riderPayload.deliveryArea,
+                experience: riderPayload.experience,
+                vehicleType: riderPayload.vehicleType,
+                vehicleNumber: riderPayload.vehicleNumber,
+                userId: riderPayload.userId
             }
         })
-        if(isRider){
-            throw new Error("User is already a rider");
-        }
-
-        if(!isUserloggedin?.id){
-            const signUpRider = await userServices.userSignUp(riderLoginData);
-            if(!signUpRider.user){
-                throw new Error("User creation failed");
-            }
-            isUserloggedin = signUpRider.user;
-        }
-        const riderProfileData = await prisma.$transaction(async(tx)=>{
-            return await tx.rider.create({
-                data:{
-                    userId: isUserloggedin.id,
-                    nid: riderData.nid,
-                    dob: riderData.dob,
-                    bloodGrouph: riderData.bloodGrouph,
-                    contact: riderData.contact,
-                    address: riderData.address,
-                    deliveryArea: riderData.deliveryArea,
-                    experience: riderData.experience,
-                    vehicleType: riderData.vehicleType,
-                    vehicleNumber: riderData.vehicleNumber
+        if(riderResult.userId){
+            await prisma.user.update({
+                where: {
+                    id: riderResult.userId
+                },
+                data: {
+                    role: UserRole.RIDER
                 }
             })
-        })
-
-        return {
-            isUserloggedin,
-            riderProfileData
         }
-        
-        
-    } catch (error) {
+        return riderResult
+
+    }catch (error) {
         throw error;
     }
 };
@@ -223,5 +194,5 @@ export const riderService = {
     updateRider,
     getRiderProfile,
     updatePercelStatus,
-    getMyParcels
+    getMyParcels,
 }

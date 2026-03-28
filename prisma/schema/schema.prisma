@@ -28,7 +28,6 @@ model User {
   merchents Merchent?
   riders Rider?
   reviews Reviews[]
-  notifications Notification[]
 }
 
 model Session {

@@ -7,7 +7,7 @@ export const CreateMarchentZodSchema = z.object({
     ComphanyPhone: z.string().min(11, "Company phone must be at least 11 characters long"),
     ComphanyEmail: z.email("Invalid email address"),
     ComphanyLogo: z.string().optional(),
-    ComphanyWebsite: z.url("Invalid URL"),
+    ComphanyWebsite: z.url("Invalid URL").optional(),
     ComphanyDescription: z.string().min(10, "Company description must be at least 10 characters long").max(200 , "Company description must be at most 200 characters long"),
     ComphanyType: z.enum(ComphanyType),
     ownerId: z.string("Owner ID is required"),

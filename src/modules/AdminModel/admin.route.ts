@@ -7,9 +7,15 @@ const adminRoute = Router();
 //?ekahen admin er kaj korbo
 adminRoute.get("/admin-profile", adminController.handleAdminProfile);
 adminRoute.get("/all-users", adminController.handleGetAllUsers);
-adminRoute.get("/all-marchent", adminController.handleGetAllMarchent);
-adminRoute.get("all-riders", adminController.handleGetAllRiders);
+
+adminRoute.get("/all-marchents", adminController.handleGetAllMarchent);
+adminRoute.get("/all-riders", adminController.handleGetAllRiders);
 adminRoute.get("/all-parcels", adminController.handleGetAllParcels)
 adminRoute.get("/statistics", adminController.handleGetStatistics)
 
-export default adminRoute;
+adminRoute.patch("/update-user/:id", adminController.handleUpdateUser)
+
+adminRoute.patch("/assign/:riderId", adminController.handleAssignRider)
+adminRoute.patch("/marchent-status/:id", adminController.handleMarchentStatus)
+adminRoute.post("/create-notification", adminController.handleCreateNotification)
+export default adminRoute;  

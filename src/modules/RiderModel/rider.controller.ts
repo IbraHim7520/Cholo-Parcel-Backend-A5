@@ -16,20 +16,6 @@ const handleCreateRider =async (req:Request , res:Response , next:NextFunction)=
             })
         }
 
-        const accessToken = createJWTToken(riderCreateResult.isUserloggedin , { expiresIn: "24h" });
-        const refreshToken = createJWTToken(riderCreateResult.isUserloggedin,  { expiresIn: "7d" });
-        SendCookies(res , "accessToken", accessToken , {
-            maxAge: 24 * 60 * 60 * 1000,
-            httpOnly:true,
-            secure: env.NODE_ENV === "production",
-            sameSite:"strict"
-        })
-        SendCookies(res , "refreshToken", refreshToken , {
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly:true,
-            secure: env.NODE_ENV === "production",
-            sameSite:"strict"
-        })
         res.status(status.OK).send({
             success:true,
             message: "Request Submitted successfully."

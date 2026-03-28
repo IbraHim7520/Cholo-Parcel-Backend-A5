@@ -1,10 +1,7 @@
 import z from 'zod'
-import { userSignupSchema } from '../UserModel/user.zodschema'
 import { PercelStatus, VehicleType } from '../../../generated/prisma/enums'
 
 export const createRiderZodSchema = z.object({
-    riderSignupData: userSignupSchema,
-    riderInfoData: z.object({
         nid: z.string("NID Number is required").min(9, "NID Number must be at least 9 digits").max(17, "NID Number must be at most 17 digits"),
         dob:z.string("Date of Birth is required").refine((value)=>{
             const date = new Date(value)
@@ -19,7 +16,7 @@ export const createRiderZodSchema = z.object({
         experience:z.string("Experience is required").optional(),
         vehicleType:z.enum(VehicleType),
         vehicleNumber:z.string("Vehicle Number is required"),
-    })
+        userId:z.string("User ID is required"),
 })
 
 export const updateRiderZodSchema = z.object({

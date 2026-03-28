@@ -27,5 +27,6 @@ export const createParcelZodSchema = z.object({
     reciverContact:z.string().min(1 , "Reciver contact is required"),
     reciverAddress:z.string().min(1 , "Reciver address is required"),
     pickupTime:z.string().min(1 , "Pickup time is required"),
-    deliveryTime:z.string().min(1 , "Delivery time is required")
+    deliveryTime:z.string().min(1 , "Delivery time is required"),
+    deliveryPrice:z.number().min(1 , "Delivery price is required")
 })

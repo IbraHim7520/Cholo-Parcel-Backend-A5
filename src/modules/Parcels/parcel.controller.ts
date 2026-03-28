@@ -63,10 +63,30 @@ const handleQueryParcel = async(req:Request , res:Response , next:NextFunction)=
     }
 }
 
+const handleGetMarchentParcel = async(req:Request , res:Response , next:NextFunction)=>{
+    try {
+        const userId = req.user?.id as string || "QbipBIbsg6oVxtZ13Iexks7YSF92cBOK"
+        const result = await parcelService.getMarchentParcel(userId);
+        if(!result){
+            return res.status(400).json({
+                success: false,
+                message: "Parcel not found!!"
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Parcel fetched successfully!!",
+            data: result
+        })
+    } catch (error) {
+        next(error)
+    }
+}
 
 
 export const parcelController = {
     handleCreateParcel,
     handleGetAllParcels,
-    handleQueryParcel
+    handleQueryParcel,
+    handleGetMarchentParcel
 }
