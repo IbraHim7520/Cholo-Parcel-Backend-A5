@@ -5,16 +5,22 @@ model Merchent {
     ComphanyPhone String    @unique
     ComphanyEmail String   @unique
     ComphanyLogo String?
-    ComphanyWebsite String?  @unique
+    ComphanyWebsite String?
     ComphanyDescription String
     ComphanyType ComphanyType
-    CreatedAt DateTime @default(now())
-    UpdatedAt DateTime @updatedAt
     status MarchentStatus @default(PENDING)
 
-    ownerId String @unique
-    user User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+
+
+    userId String @unique
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@map("merchent")
+    @@index([userId])
+    @@index([status])
     percels Percel[]
 }

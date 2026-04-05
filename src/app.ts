@@ -8,10 +8,8 @@ import { auth } from './lib/auth';
 import userRoute from './modules/UserModel/user.route';
 import GlobalError from './middlewere/handleGlobalErrors';
 import dotenv from 'dotenv';
-import riderRoute from './modules/RiderModel/rider.route';
-import marchentRouter from './modules/MarchentModel/marchent.route';
-import parcelRoute from './modules/Parcels/parcel.route';
-import adminRoute from './modules/AdminModel/admin.route';
+import adminRoute from './modules/AdminModels/admin.route';
+import merchentRoute from './modules/MerchentModule/merchent.route';
 dotenv.config()
 const app: Application = express();
 
@@ -48,11 +46,9 @@ app.get('/', (req: Request, res: Response) => {
 
 
 
-app.use("/api/v1/users", userRoute),
-app.use("/api/v1/riders", riderRoute),
-app.use("/api/v1/marchents", marchentRouter);
-app.use("/api/v1/parcels", parcelRoute);
-app.use("/api/v1/admins", adminRoute)
+app.use("/api/v1/users", userRoute);
+app.use("/api/v1/admins", adminRoute);
+app.use("/api/v1/merchent", merchentRoute);
 
 
 app.use(notFoundRoute);

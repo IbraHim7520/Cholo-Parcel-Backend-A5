@@ -4,6 +4,7 @@ import { IUserChangePassword, IUserLogin, IUserSignup } from "./user.interface"
 import cloudinary from "../../config/cloudinaryConfig";
 import { fromNodeHeaders } from "better-auth/node";
 import { deocodeToken } from "../../utils/jwtToken";
+import { prisma } from "../../lib/prisma";
 
 const userSignUp =async(signupData: IUserSignup)=>{
     const data = await auth.api.signUpEmail({
@@ -70,11 +71,27 @@ const userGetUserData = async(req:Request)=>{
     return userData
 }
 
+const userGetPercelStatus = async(percelId:string)=>{
+    return await prisma.percel.findUnique({
+        where: {
+            id: percelId
+        },
+        select:{
+            status:true,
+            reciverName:true,
+            reciverContact:true,
+            reciverAddress:true,
+            deliveryTime:true,
+            isSelfPickup:true
+        }
+    })
+}
 export const userServices = {
     userSignUp,
     userSignin,
     userChangePassword,
     userLogout,
     userUploadImage,
-    userGetUserData
+    userGetUserData,
+    userGetPercelStatus
 }

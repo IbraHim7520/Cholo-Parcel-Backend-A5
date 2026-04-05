@@ -11,11 +11,3 @@ model Notification {
 }
 
 
-// enum NotificationTarget {
-//     ALL
-//     USER
-//     MERCHENT
-//     RIDER
-//     ADMIN
-
-// }

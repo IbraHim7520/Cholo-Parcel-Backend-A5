@@ -202,11 +202,34 @@ const handleGetUserData = async(req:Request , res:Response , next:NextFunction)=
 }
 
 
+const handleGetPercelStatus = async(req:Request , res:Response , next:NextFunction)=>{
+    try {
+        const percelId = req.params.percelId;
+        const percelStatus = await userServices.userGetPercelStatus(percelId as string);
+        if(!percelStatus){
+            res.status(status.BAD_REQUEST).send({
+                success: false,
+                message: "Failed to get percel status!",
+                data: null
+            })
+        }
+        res.status(status.OK).send({
+            success: true,
+            message: "Percel status fetched successfully.",
+            data: percelStatus
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+
 export const userController = {
     handleUserSignUp,
     handleUserLogin,
     handleUserLogout,
     handleChangePassword,
     handleUploadImage,
-    handleGetUserData
+    handleGetUserData,
+    handleGetPercelStatus
 }

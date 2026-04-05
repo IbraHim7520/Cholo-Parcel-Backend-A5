@@ -3,30 +3,32 @@ model Rider {
     userId String @unique
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    isBanned Boolean @default(false)
+    
     joinDate DateTime @default(now())
     nid String @unique
     dob String
-    status RiderRequestStatus @default(PENDING)
-    
     bloodGrouph String?
     contact String
     address String
     deliveryArea String
-    experience String @default("No Experience")
     vehicleType VehicleType @default(BIKE)
+    assignedAt DateTime?
+    experience String @default("No Experience")
+    vehicleNumber String 
 
+
+    status RiderRequestStatus @default(PENDING)
     isAvailable Boolean @default(true)
-    assignedAt DateTime? 
+    
 
-    vehicleNumber String
+ 
 
    
 
     @@map("rider")
     @@index([userId])
     @@index([isAvailable])
-    @@index([isBanned])
+    @@index([status])
 
     percels Percel[]
 }

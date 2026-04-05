@@ -1,74 +1,131 @@
 import { NextFunction, Request, Response } from "express";
 import { env } from "../config/env";
-import  { ZodError } from 'zod'
+import { ZodError } from "zod";
 import status from "http-status";
-import { PrismaClientValidationError } from "@prisma/client/runtime/client";
 import { APIError } from "better-auth";
-// Error From Global Error -> [APIError: Email not verified] {
-//         status: 'FORBIDDEN',
-//             body: { message: 'Email not verified', code: 'EMAIL_NOT_VERIFIED' },
-//         headers: { },
-//         statusCode: 403
-const GlobalError = (err:any , req:Request , res:Response , next:NextFunction)=>{
-    if(env.NODE_ENV === 'development'){
-        console.log("Error From Global Error-> ", err);
-    }
-    let statusCode = status.INTERNAL_SERVER_ERROR || 500
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
+import { PrismaClientValidationError } from "../../generated/prisma/internal/prismaNamespace";
 
-    if(err instanceof ZodError){
-        const zodError = err.issues.map((issue)=>{
-            return {
-                path: issue.path,
-                message: issue.message
-            }
-        })
+// Common Error Interface for Frontend Consistency
+interface IErrorSource {
+    path: string | number;
+    message: string;
+}
 
-        res.status(statusCode).json({
-            success: false,
-            message: "Internal Server Error",
-            error: zodError
-        })
+const GlobalError = (
+    err: any,
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    let statusCode: number = status.INTERNAL_SERVER_ERROR;
+    let message = "Something went wrong!";
+    let errorSources: IErrorSource[] = [];
+
+    if (env.NODE_ENV === "development") {
+        console.error("Error Log -> ", err);
     }
 
-   if(err instanceof APIError){
-    res.status(statusCode).json({
-        success: false,
-        message: err.body?.message,
-        error: err.message
-    })
-   }
+    // 1. Zod Validation Error
+    if (err instanceof ZodError) {
+        statusCode = status.BAD_REQUEST;
+        message = "Validation Error";
 
-    if(err instanceof PrismaClientValidationError){
-        if(Array.isArray(err)){
-            const messages = err.map((issue)=>{
-                return issue.message
-            })
+        errorSources = err.issues.map((issue) => ({
+            path: String(issue.path[issue.path.length - 1] ?? ""),
+            message: issue.message,
+        }));
+    }
 
-            res.status(statusCode).json({
-                success: false,
-                message: "Input Validatio  Error",
-                error: messages
-            })
-        }else{
-            res.status(statusCode).json({
-                success: false,
-                message: "Input Validatio  Error",
-                error: err.message
-            })
+    // 2. Prisma Known Request Errors
+    else if (err instanceof PrismaClientKnownRequestError) {
+        statusCode = status.BAD_REQUEST;
+
+        // P2002: Unique constraint failed
+        if (err.code === "P2002") {
+            const field = (err.meta?.target as string[])?.join(", ") || "field";
+
+            message = `Duplicate value error: ${field} already exists.`;
+
+            errorSources = [
+                {
+                    path: field,
+                    message: `${field} must be unique.`,
+                },
+            ];
+        }
+
+        // P2025: Record not found
+        else if (err.code === "P2025") {
+            message = "Record not found";
+
+            errorSources = [
+                {
+                    path: "",
+                    message:
+                        (err.meta?.cause as string) ||
+                        "The record you are looking for does not exist.",
+                },
+            ];
+        }
+
+        else {
+            message = "Database Request Error";
+
+            errorSources = [
+                {
+                    path: "",
+                    message: err.message,
+                },
+            ];
         }
     }
 
+    // 3. Prisma Validation Error
+    else if (err instanceof PrismaClientValidationError) {
+        statusCode = status.BAD_REQUEST;
+        message = "Invalid data provided to the database.";
 
-    
+        errorSources = [
+            {
+                path: "",
+                message:
+                    "Check if you are sending the correct data types according to the schema.",
+            },
+        ];
+    }
 
+    // 4. Better Auth / API Errors
+    else if (err instanceof APIError) {
+        statusCode = err.statusCode || status.FORBIDDEN;
+        message = err.body?.message || "Authentication Error";
 
-    res.status(statusCode).json({
+        errorSources = [
+            {
+                path: err.body?.code || "AUTH_ERROR",
+                message: err.message,
+            },
+        ];
+    }
+
+    // 5. Native Error Object
+    else if (err instanceof Error) {
+        message = err.message;
+
+        errorSources = [
+            {
+                path: "",
+                message: err.message,
+            },
+        ];
+    }
+
+    return res.status(statusCode).json({
         success: false,
-        message: "Internal Server Error",
-        error: err?.message ? err.message : JSON.stringify(err)
-    })
-
-}
-
+        message,
+        errorSources,
+        stack: env.NODE_ENV === "development" ? err?.stack : undefined,
+    });
+};
 
 export default GlobalError;

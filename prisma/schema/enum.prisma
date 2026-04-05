@@ -66,7 +66,15 @@ enum RiderRequestStatus {
     PENDING
     APPROVED
     REJECTED
+    BANNED
 }
+enum MerchentRequestStatus {
+    PENDING
+    APPROVED
+    REJECTED
+    BANNED
+}
+
 
 enum MarchentStatus {
     PENDING
