@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { auth } from "../../lib/auth"
-import { IUserChangePassword, IUserLogin, IUserSignup } from "./user.interface"
+import { IUserChangePassword, IUsercreateReviws, IUserLogin, IUserSignup } from "./user.interface"
 import cloudinary from "../../config/cloudinaryConfig";
 import { fromNodeHeaders } from "better-auth/node";
 import { deocodeToken } from "../../utils/jwtToken";
@@ -86,6 +86,18 @@ const userGetPercelStatus = async(percelId:string)=>{
         }
     })
 }
+
+const userCreateReviews = async(reviewsData:IUsercreateReviws)=>{
+  
+    return await prisma.reviews.create({
+        data: {
+            rating: reviewsData.rating,
+            comment:reviewsData.comment,
+            userId:reviewsData.userId,
+            percelId:reviewsData.percelId
+        }
+    })
+}
 export const userServices = {
     userSignUp,
     userSignin,
@@ -93,5 +105,6 @@ export const userServices = {
     userLogout,
     userUploadImage,
     userGetUserData,
-    userGetPercelStatus
+    userGetPercelStatus,
+    userCreateReviews
 }

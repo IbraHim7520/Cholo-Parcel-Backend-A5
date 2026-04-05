@@ -223,6 +223,27 @@ const handleGetPercelStatus = async(req:Request , res:Response , next:NextFuncti
     }
 }
 
+const handleCreateReviews = async(req:Request , res:Response , next:NextFunction)=>{
+    try {
+        const reviewsData = req.body;
+        console.log(reviewsData)
+        const reviewsResult = await userServices.userCreateReviews(reviewsData);
+        if(!reviewsResult){
+            res.status(status.BAD_REQUEST).send({
+                success: false,
+                message: "Failed to create reviews!",
+                data: null
+            })
+        }
+        res.status(status.OK).send({
+            success: true,
+            message: "Reviews created successfully.",
+            data: reviewsResult
+        })
+    } catch (error) {
+        next(error)
+    }
+}
 
 export const userController = {
     handleUserSignUp,
@@ -231,5 +252,6 @@ export const userController = {
     handleChangePassword,
     handleUploadImage,
     handleGetUserData,
-    handleGetPercelStatus
+    handleGetPercelStatus,
+    handleCreateReviews
 }

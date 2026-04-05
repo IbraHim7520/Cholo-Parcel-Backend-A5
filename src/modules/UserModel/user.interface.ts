@@ -15,3 +15,10 @@ export interface IUserChangePassword {
     oldPassword:string,
     newPassword:string
 }
+
+export interface IUsercreateReviws {
+    rating:number,
+    comment:string,
+    userId:string,
+    percelId:string
+}

@@ -1,7 +1,7 @@
 import { Router } from "express"
 import { userController } from "./user.controller";
 import ValidateReqBody from "../../middlewere/ValidateZodSchema";
-import { userChangePasswordZodSchema, userLoginSchema, userSignupSchema } from "./user.zodschema";
+import { userChangePasswordZodSchema, userCreateReviews, userLoginSchema, userSignupSchema } from "./user.zodschema";
 import upload from "../../config/multer";
 import { verifyRequest } from "../../middlewere/verifyRequest";
 import { UserRole } from "../../../generated/prisma/enums";
@@ -23,4 +23,5 @@ userRoute.post("/upload-image",  upload.single("image"), userController.handleUp
 userRoute.get("/me",  userController.handleGetUserData)
 
 userRoute.get("/percel-status/:percelId", userController.handleGetPercelStatus)
+userRoute.post("/create-reviews", ValidateReqBody(userCreateReviews) , userController.handleCreateReviews)
 export default userRoute;   
