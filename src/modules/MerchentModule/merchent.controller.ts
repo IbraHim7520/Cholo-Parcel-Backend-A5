@@ -58,9 +58,46 @@ const handleUpdateStatus = async (req: Request, res: Response, next:NextFunction
         next(error)
     }
 }
+
+const handleGetMyReviews = async(req:Request , res:Response , next:NextFunction)=>{
+    const userId = req?.user?.id
+    try {
+        const reviewsResult = await merchentService.merchentGetPercelReviews(userId as string);
+        if(!reviewsResult){
+            res.status(400).send({
+                success:false,
+                message:"Failed to add review",
+                error:"Review not added"
+            })
+        }
+        res.status(200).send({
+            success:true,
+            message:"Review added successfully",
+            data:reviewsResult
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const handleDeleteReview = async(req:Request , res:Response , next:NextFunction)=>{
+    const reviewId = req.params.reviewId;
+    try {
+        const result = await merchentService.deleteReview(reviewId as string)
+        res.status(200).send({
+            success:true,
+            message:"Review deleted successfully",
+            data:result
+        })
+    } catch (error) {
+        next(error)
+    }
+}
 export const merchentController = {
     handleCreatePercel,
     handleGetMyPercels,
     handleDeletePercel,
-    handleUpdateStatus
+    handleUpdateStatus,
+    handleGetMyReviews,
+    handleDeleteReview
 }

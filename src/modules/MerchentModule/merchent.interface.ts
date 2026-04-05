@@ -20,3 +20,14 @@ export interface ICreateParcel {
 
     merchentId: string;
 }
+
+
+export interface IMerchentGetReviews {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    userId: string;
+    rating: string;
+    comment: string;
+    percelId: string;
+}

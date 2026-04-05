@@ -8,5 +8,6 @@ merchentRoute.post("/create-percels", ValidateReqBody(MerchentCreatePercelSchema
 merchentRoute.get("/my-percels/:userId", merchentController.handleGetMyPercels)
 merchentRoute.delete("/delete-percel/:percelId", merchentController.handleDeletePercel)
 merchentRoute.patch("/update-status/:percelId", merchentController.handleUpdateStatus)
-
+merchentRoute.get("/my-reviews", merchentController.handleGetMyReviews)
+merchentRoute.delete("/delete-review/:reviewId", merchentController.handleDeleteReview)
 export default merchentRoute;

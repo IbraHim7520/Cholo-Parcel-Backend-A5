@@ -1,6 +1,7 @@
 import { MarchentStatus, PercelStatus } from "../../../generated/prisma/enums"
 import { prisma } from "../../lib/prisma"
-import { ICreateParcel } from "./merchent.interface"
+import { IUsercreateReviws } from "../UserModel/user.interface"
+import { ICreateParcel, IMerchentGetReviews } from "./merchent.interface"
 
 export const getMerchentID = async(userId:string)=>{
     const isMerchentExist = await prisma.merchent.findFirst({
@@ -28,7 +29,7 @@ const createPercel = async (merchentData: ICreateParcel) => {
             weight: merchentData.weight,
             notes: merchentData.notes,
             price: merchentData.price,
-            deliveryPrice: merchentData.deliveryCharge,
+            deliveryCharge: merchentData.deliveryCharge,
             pickupLocation: merchentData.pickupLocation,
             deliveryTime: new Date(merchentData.deliveryTime),
             status: PercelStatus.REQUESTED,
@@ -100,9 +101,63 @@ const updateStatus = async (percelId: string, status: PercelStatus) => {
         }
     })
 }
+
+const merchentGetPercelReviews = async (userId: string) => {
+    const merchentId = await getMerchentID(userId || "a8No6q3ECrcPHxVoluKiDZrDfMeQu2la")
+
+    if (!merchentId) {
+        throw new Error("Merchent not found")
+    }
+
+    const reviews = await prisma.reviews.findMany({
+        where: {
+            percel: {
+                merchentId: merchentId
+            }
+        },
+        include: {
+            percel: {
+                select:{
+                    id:true,
+                    name:true,
+                    reciverName:true,
+                    reciverAddress:true,
+                }
+            }, // optional (if you want parcel info)
+            user: {
+                select:{
+                    name:true,
+                    email:true,
+                    image:true,
+                    id:true
+                }
+            }   // optional (if you want reviewer info)
+        }
+    })
+
+    return reviews
+}
+
+const deleteReview = async (reviewId: string) => {
+    const isReviewExist = await prisma.reviews.findFirst({
+        where: {
+            id: reviewId
+        }
+    })
+    if(!isReviewExist){
+        throw new Error("Review not found")
+    }
+    return await prisma.reviews.delete({
+        where: {
+            id: reviewId
+        }
+    })
+}
 export const merchentService = {
     createPercel,
     getMyPercels,
     deletePercel,
-    updateStatus
+    merchentGetPercelReviews,
+    updateStatus,
+    deleteReview
 }

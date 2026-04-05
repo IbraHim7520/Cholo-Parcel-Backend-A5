@@ -4,7 +4,7 @@ model Percel {
     notes String?
     weight Float
     price Int
-    deliveryCharge Int
+    deliveryCharge Int @default(0)
     status PercelStatus @default(REQUESTED)
     pickupLocation String @db.VarChar(255)
     isSelfPickup Boolean @default(false)
