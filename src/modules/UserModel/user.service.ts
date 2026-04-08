@@ -5,6 +5,7 @@ import cloudinary from "../../config/cloudinaryConfig";
 import { fromNodeHeaders } from "better-auth/node";
 import { deocodeToken } from "../../utils/jwtToken";
 import { prisma } from "../../lib/prisma";
+import { UserRole } from "../../../generated/prisma/enums";
 
 const userSignUp =async(signupData: IUserSignup)=>{
     const data = await auth.api.signUpEmail({
@@ -98,6 +99,17 @@ const userCreateReviews = async(reviewsData:IUsercreateReviws)=>{
         }
     })
 }
+
+const userGetAllNotifications = async(role:UserRole)=>{
+    return await prisma.notification.findMany({
+        where: {
+            target: role
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    })
+}
 export const userServices = {
     userSignUp,
     userSignin,
@@ -106,5 +118,6 @@ export const userServices = {
     userUploadImage,
     userGetUserData,
     userGetPercelStatus,
-    userCreateReviews
+    userCreateReviews,
+    userGetAllNotifications
 }

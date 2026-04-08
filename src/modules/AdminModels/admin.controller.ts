@@ -289,6 +289,77 @@ const handleDeleteUser = async (req: Request , res: Response, next: NextFunction
     }    
 
 }
+
+const handleCreateNotification = async (req: Request , res: Response, next: NextFunction) => {
+    const notificationData = req.body;
+    try {
+        const result = await adminService.createNotification(notificationData);
+        
+        if(!result){
+            return res.status(400).send({
+                success: false,
+                message: "Notification created failed",
+                data: result
+            })
+        }
+
+        return res.status(200).send({
+            success: true,
+            message: "Notification created successfully",
+            data: result
+        })
+    } catch (error) {
+        next(error)
+    }    
+
+}
+
+const handleGetAllNotifications = async (req: Request , res: Response, next: NextFunction) => {
+    try {
+        const result = await adminService.getAllNotifications();
+
+        if(!result){
+            return res.status(400).send({
+                success: false,
+                message: "No notifications found",
+                data: result
+            })
+        }
+
+        return res.status(200).send({
+            success: true,
+            message: "Notifications get successfully",
+            data: result
+        })
+    } catch (error) {
+        next(error)
+    }    
+
+}
+
+const handleDeleteNotification = async (req: Request , res: Response, next: NextFunction) => {
+    const {id} = req.params;
+    try {
+        const result = await adminService.deleteNotification(id as string);
+
+        if(!result){
+            return res.status(400).send({
+                success: false,
+                message: "Notification delete failed",
+                data: result
+            })
+        }
+
+        return res.status(200).send({
+            success: true,
+            message: "Notification delete successfully",
+            data: result
+        })
+    } catch (error) {
+        next(error)
+    }    
+
+}
 export const adminController = {
     handleCreateMarchent,
     handleGetMerchentByRequest,
@@ -301,5 +372,8 @@ export const adminController = {
     handleGetAllPercels,
     handleDeleteParcel,
     handleGetAllUsers,
-    handleDeleteUser
+    handleDeleteUser,
+    handleCreateNotification,   
+    handleGetAllNotifications,
+    handleDeleteNotification
 }

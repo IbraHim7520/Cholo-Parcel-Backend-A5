@@ -4,6 +4,7 @@ import status from "http-status"
 import { createJWTToken } from "../../utils/jwtToken"
 import { env } from "../../config/env"
 import { SendCookies } from "../../utils/Cookie"
+import { UserRole } from "../../../generated/prisma/enums"
 
 const handleUserSignUp =async(req:Request , res:Response, next:NextFunction)=>{
     const signupData = req.body
@@ -245,6 +246,26 @@ const handleCreateReviews = async(req:Request , res:Response , next:NextFunction
     }
 }
 
+const handleGetAllNotifications = async(req:Request , res:Response , next:NextFunction)=>{
+    const user = req?.user?.role || UserRole.RIDER
+    try {
+        const notifications = await userServices.userGetAllNotifications(user as UserRole);
+        if(!notifications){
+            res.status(status.BAD_REQUEST).send({
+                success: false,
+                message: "Failed to get notifications!",
+                data: null
+            })
+        }
+        res.status(status.OK).send({
+            success: true,
+            message: "Notifications fetched successfully.",
+            data: notifications
+        })
+    } catch (error) {
+        next(error)
+    }
+}
 export const userController = {
     handleUserSignUp,
     handleUserLogin,
@@ -253,5 +274,6 @@ export const userController = {
     handleUploadImage,
     handleGetUserData,
     handleGetPercelStatus,
-    handleCreateReviews
+    handleCreateReviews,
+    handleGetAllNotifications
 }

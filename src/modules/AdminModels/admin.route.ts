@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { adminController } from "./admin.controller";
-import { createMerchentZodSchema, createRiderZodSchema } from "./admin.zodSchema";
+import { adminCreateNotification, createMerchentZodSchema, createRiderZodSchema } from "./admin.zodSchema";
 import ValidateReqBody from "../../middlewere/ValidateZodSchema";
 import { verifyRequest } from "../../middlewere/verifyRequest";
 import { UserRole } from "../../../generated/prisma/enums";
@@ -20,4 +20,8 @@ adminRoute.get("/all-percels" , adminController.handleGetAllPercels)
 adminRoute.get("/all-users",  adminController.handleGetAllUsers)
 adminRoute.patch("/update-merchent-status/:id", adminController.handleUpdateMerchentStatus);
 adminRoute.delete("/delete-user/:id", adminController.handleDeleteUser)
+
+adminRoute.post("/create-notification", ValidateReqBody(adminCreateNotification),adminController.handleCreateNotification)
+adminRoute.get("/notifications", adminController.handleGetAllNotifications)
+adminRoute.delete("/delete-notification/:id", adminController.handleDeleteNotification)
 export default adminRoute

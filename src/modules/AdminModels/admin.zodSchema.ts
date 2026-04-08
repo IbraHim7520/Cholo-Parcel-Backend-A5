@@ -1,5 +1,5 @@
 import z from "zod"
-import { ComphanyType, VehicleType } from "../../../generated/prisma/enums"
+import { ComphanyType, NotificationTarget, VehicleType } from "../../../generated/prisma/enums"
 
     // nid String @unique
     // dob String
@@ -42,4 +42,11 @@ export const createRiderZodSchema = z.object({
     experience: z.string("Experience is required").min(3, "Experience must be at least 3 characters long").max(100 , "Experience must be at most 100 characters long").optional(),
     vehicleNumber: z.string("Vehicle number is required").min(3, "Vehicle number must be at least 3 characters long").max(100 , "Vehicle number must be at most 100 characters long"),
 
+})
+
+
+export const adminCreateNotification = z.object({
+    title: z.string("Title is required").min(3, "Title must be at least 3 characters long").max(100 , "Title must be at most 100 characters long"),
+    message: z.string("Message is required").min(3, "Message must be at least 3 characters long").max(200 , "Message must be at most 200 characters long"),
+    target: z.enum(NotificationTarget , "Invalid target"),
 })

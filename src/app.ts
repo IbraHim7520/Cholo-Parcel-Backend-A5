@@ -10,6 +10,7 @@ import GlobalError from './middlewere/handleGlobalErrors';
 import dotenv from 'dotenv';
 import adminRoute from './modules/AdminModels/admin.route';
 import merchentRoute from './modules/MerchentModule/merchent.route';
+import riderRoute from './modules/RiderModels/rider.route';
 dotenv.config()
 const app: Application = express();
 
@@ -49,7 +50,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/admins", adminRoute);
 app.use("/api/v1/merchent", merchentRoute);
-
+app.use("/api/v1/riders", riderRoute);
 
 app.use(notFoundRoute);
 app.use(GlobalError);

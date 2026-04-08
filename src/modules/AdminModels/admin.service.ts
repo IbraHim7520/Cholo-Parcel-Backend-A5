@@ -2,7 +2,7 @@ import { MarchentStatus, PercelStatus, RiderRequestStatus, UserRole, UserStatus 
 import { auth } from "../../lib/auth"
 import { prisma } from "../../lib/prisma"
 import { userServices } from "../UserModel/user.service"
-import { IAdminCreateMerchent, IAdminCreateRider } from "./admin.interface"
+import { IAdminCreateMerchent, IAdminCreateNotification, IAdminCreateRider } from "./admin.interface"
 
 interface IUser {
     id: string;
@@ -330,6 +330,24 @@ const deleteUser = async(id:string)=>{
     }
    })
 }
+
+const createNotification = async(notificationData: IAdminCreateNotification)=>{
+    return await prisma.notification.create({
+        data: notificationData
+    })
+}
+
+const getAllNotifications = async()=>{
+    return await prisma.notification.findMany()
+}
+
+const deleteNotification = async(id:string)=>{
+    return await prisma.notification.delete({
+        where: {
+            id
+        }
+    })
+}
 export const adminService = {
     createMerchant,
     getAllMerchent,
@@ -342,6 +360,9 @@ export const adminService = {
     getAllPercels,
     deleteParcel,
     getAllUsers,
-    deleteUser
+    deleteUser,
+    createNotification,
+    getAllNotifications,
+    deleteNotification
 
 }

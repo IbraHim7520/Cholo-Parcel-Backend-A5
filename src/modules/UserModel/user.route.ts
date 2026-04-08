@@ -24,4 +24,5 @@ userRoute.get("/me",  userController.handleGetUserData)
 
 userRoute.get("/percel-status/:percelId", userController.handleGetPercelStatus)
 userRoute.post("/create-reviews", ValidateReqBody(userCreateReviews) , userController.handleCreateReviews)
+userRoute.get("/notifications", userController.handleGetAllNotifications)
 export default userRoute;   

@@ -4,7 +4,7 @@
 //     ownerImage: z.string().optional(),
 //     ownerPassword: z.string("Password is required").min(6, "Password must be at least 6 characters long").max(8 , "Password must be at most 8 characters long"),
 
-import { ComphanyType, VehicleType } from "../../../generated/prisma/enums";
+import { ComphanyType, NotificationTarget, VehicleType } from "../../../generated/prisma/enums";
 
 export interface IAdminCreateMerchent  {
     ownerName: string;
@@ -36,4 +36,10 @@ export interface IAdminCreateRider {
     vehicleType: VehicleType;
     experience: string;
     vehicleNumber: string;
+}
+
+export interface IAdminCreateNotification {
+    title:string,
+    message:string,
+    target:NotificationTarget
 }
